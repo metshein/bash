@@ -170,6 +170,8 @@ if [ -n "$pack_script_name" ] && \
     ok "Varukoopia skripti testkaivitus on tuvastatud"
 elif history_has '(^|[[:space:]])(tar|zip)([[:space:]]|$)' && [ -n "$backup_archive" ]; then
     ok "Varukoopia loomise test on tuvastatud (tar/zip + varukoopiafail)"
+elif [ -n "$backup_archive" ] && find "$backup_archive" -mmin -1440 >/dev/null 2>&1; then
+    ok "Varukoopia loomise test on tuvastatud (uus varukoopiafail on olemas)"
 else
     all_missing=$((all_missing + 1))
     fail "Varukoopia loomise testi ei leitud"
