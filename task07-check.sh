@@ -131,13 +131,12 @@ elif [ -n "$wlan_file" ]; then
     echo "  Vihje: kasuta wlan liidese kuvamiseks ip voi ifconfig kaske."
 fi
 
-if history_has '(^|[[:space:]])(ip|ifconfig|iwconfig|nmcli)([[:space:]].*)(wlan|wlan0)' && \
-   history_has 'wlan\.txt'; then
-    ok "wlan liidese kuvamise ja faili suunamise tegevus on leitud"
+if history_has 'wlan\.txt' || { [ -n "$wlan_file" ] && looks_like_wlan_dump "$wlan_file"; }; then
+    ok "wlan seadetest faili tegemise tegevus on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "wlan liidese seadetest wlan.txt tegemist ei leitud"
-    echo "  Vihje: kuva wlan liides ja suuna valjund faili wlan.txt."
+    fail "wlan seadetest wlan.txt tegemist ei leitud"
+    echo "  Vihje: kuva liidese seaded ja suuna valjund faili wlan.txt."
 fi
 
 if history_has '(^|[[:space:]])(scp|sftp|rsync|python[[:space:]]+-m[[:space:]]+http\.server|wget|curl)([[:space:]]|$)' || \
