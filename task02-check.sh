@@ -6,6 +6,14 @@ source "$(dirname "$0")/common.sh"
 
 HISTORY_FILE="$HOME/.bash_history"
 
+if [ -t 1 ]; then
+    RED_BOLD='\033[1;31m'
+    RESET='\033[0m'
+else
+    RED_BOLD=''
+    RESET=''
+fi
+
 mandatory_fails=0
 
 ok() {
@@ -13,7 +21,7 @@ ok() {
 }
 
 fail() {
-    echo "[PUUDU] $1"
+    printf '%b\n' "${RED_BOLD}[PUUDU]${RESET} $1"
     mandatory_fails=$((mandatory_fails + 1))
 }
 
@@ -70,6 +78,6 @@ if [ "$mandatory_fails" -eq 0 ]; then
     echo "Task 02: ARVESTATUD"
     send_result 2
 else
-    echo "Task 02: MITTE ARVESTATUD"
+    printf '%b\n' "${RED_BOLD}Task 02: MITTE ARVESTATUD${RESET}"
     exit 1
 fi
