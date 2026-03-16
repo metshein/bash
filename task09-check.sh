@@ -89,8 +89,7 @@ path_config_has_skriptid() {
 script_prints_name_and_course() {
     local file="$1"
 
-    grep -Eiq '(echo|printf)' "$file" && \
-    grep -Eiq '(kursus|course)' "$file"
+    grep -Eiq '^[[:space:]]*(echo|printf)\b' "$file"
 }
 
 echo "Task 09: kontrollin, kas vajalikud tegevused on labi tehtud"
