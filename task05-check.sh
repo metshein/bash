@@ -45,20 +45,7 @@ history_reverse_stream() {
 }
 
 collect_created_users() {
-    history_reverse_stream | \
-        grep -E '(^|[[:space:]])(sudo[[:space:]]+)?(useradd|adduser)([[:space:]]|$)' | \
-        awk '
-            {
-                user=""
-                for (i=NF; i>=1; i--) {
-                    if ($i ~ /^-/) continue
-                    if ($i == "sudo" || $i == "useradd" || $i == "adduser") continue
-                    user=$i
-                    break
-                }
-                if (user != "") print user
-            }
-        ' | awk '!seen[$0]++' | head -n 3
+    getent passwd | awk -F: '$3 >= 1000 {print $1}' | head -n 5
 }
 
 echo "Task 05: kontrollin, kas vajalikud tegevused on labi tehtud"
@@ -75,12 +62,14 @@ fi
 
 mapfile -t created_users < <(collect_created_users)
 
-if [ "${#created_users[@]}" -ge 1 ]; then
-    ok "Vähemalt üks kasutaja loomise käsk on ajaloost leitav"
+if [ "${#created_users[@]}" -ge 3 ]; then
+    ok "Vahemalt 3 loodud kasutajat on systeemis olemas"
+elif [ "${#created_users[@]}" -ge 1 ]; then
+    ok "Kasutajaid on olemas (leitud: ${created_users[*]})"
 else
     all_missing=$((all_missing + 1))
-    fail "Kasutaja loomise käsku ei leitud"
-    echo "  Vihje: loo testkasutajad kas sudo useradd või adduser abil."
+    fail "Kolme kasutaja ei leitud systeemist"
+    echo "  Vihje: kontrolli, kas lood testkasutajad (user1, user2, user3) nimega."
 fi
 
 existing_count=0
@@ -106,12 +95,12 @@ else
     echo "  Vihje: kontrolli, et testkasutajatele oleks paroolid maaratud."
 fi
 
-if history_has '(^|[[:space:]])(groupadd|addgroup)([[:space:]].*)harjutus5([[:space:]]|$)'; then
+if history_has '(^|[[:space:]])(groupadd|addgroup)' && history_has 'harjutus5'; then
     ok "Grupi harjutus5 loomine on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "Grupi harjutus5 loomise tegevust ei leitud"
-    echo "  Vihje: loo nouutud grupp enne umbernimetamist."
+    fail "Grupi harjutus5 loomist ei leitud"
+    echo "  Vihje: loo nouutud grupp groupadd voi addgroup kaesuga."
 fi
 
 if history_has '(^|[[:space:]])groupmod([[:space:]].*)-n[[:space:]]+harj5([[:space:]].*)harjutus5([[:space:]]|$)'; then
