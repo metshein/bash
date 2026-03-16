@@ -46,14 +46,14 @@ if [ -f "$HISTORY_FILE" ]; then
 else
     all_missing=$((all_missing + 1))
     fail "Bash ajaloo faili ei leitud"
-    echo "  Vihje: tee terminalis paar kasu ja lopeta shell korrektselt."
+    echo "  Vihje: tee terminalis paar kasku ja lopeta shell korrektselt."
 fi
 
 if history_has '(^|[[:space:]])(find|locate)([[:space:]].*)?\.bash_history'; then
     ok "Ajaloo faili otsimise kask on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "Ajaloo faili otsimise kasu ei leitud"
+    fail "Ajaloo faili otsimise kasku ei leitud"
     echo "  Vihje: kasuta faili leidmiseks vastavat otsingukasku."
 fi
 
@@ -61,7 +61,7 @@ if history_has '(^|[[:space:]])(grep|awk|sed|rg)([[:space:]].*)sudo'; then
     ok "sudo ridade otsimine on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "sudo ridade otsimise kasu ei leitud"
+    fail "sudo ridade otsimise kasku ei leitud"
     echo "  Vihje: filtreeri failist read, mis sisaldavad sona sudo."
 fi
 
