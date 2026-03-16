@@ -45,7 +45,7 @@ history_reverse_stream() {
 }
 
 collect_created_users() {
-    getent passwd | awk -F: '$3 >= 1000 {print $1}' | head -n 5
+    getent passwd | awk -F: '$1 ~ /^user[0-9]+$/ {print $1}' | sort -V
 }
 
 echo "Task 05: kontrollin, kas vajalikud tegevused on labi tehtud"
@@ -69,7 +69,7 @@ elif [ "${#created_users[@]}" -ge 1 ]; then
 else
     all_missing=$((all_missing + 1))
     fail "Kolme kasutaja ei leitud systeemist"
-    echo "  Vihje: kontrolli, kas lood testkasutajad (user1, user2, user3) nimega."
+    echo "  Vihje: kontrolli, kas lood testkasutajad nimedega user1, user2 ja user3."
 fi
 
 existing_count=0
