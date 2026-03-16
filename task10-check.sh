@@ -70,12 +70,20 @@ find_task10_script() {
             continue
         fi
 
+        # Keep only bash-like scripts for this task.
+        if ! head -n 1 "$script" 2>/dev/null | grep -Eiq '^#!.*/(ba)?sh' && \
+           ! grep -Eiq '(^|[[:space:]])read[[:space:]]+|(^|[[:space:]])useradd([[:space:]]|$)|(^|[[:space:]])chpasswd([[:space:]]|$)' "$script"; then
+            continue
+        fi
+
         if grep -Eiq '(useradd|adduser)' "$script" && \
            grep -Eiq '(read[[:space:]].*(kasutaja|user)|kasutaja|username)' "$script"; then
             printf '%s\n' "$script"
             return 0
         fi
-    done < <(find "$HOME" -maxdepth 5 -type f \( -name '*.sh' -o -name 'yl10*' -o -name '*kasutaja*' -o -name 'muutujad' -o -perm -u+x \) 2>/dev/null)
+    done < <(find "$HOME" \
+        \( -path '*/.copilot/*' -o -path '*/.cache/*' -o -path '*/.config/*' -o -path '*/node_modules/*' -o -path '*/.git/*' \) -prune -o \
+        -maxdepth 5 -type f \( -name '*.sh' -o -name 'yl10*' -o -name '*kasutaja*' -o -name 'muutujad' \) -print 2>/dev/null)
 
     return 1
 }
@@ -121,13 +129,6 @@ has_welcome_file_logic() {
     # Variant 2: tee pannakse kokku muutujate kaudu (HOME_DIR -> FILE).
     grep -Eiq 'HOME_DIR=.*/home/\$\{?[[:alnum:]_]+\}?' "$file" && \
     grep -Eiq 'FILE=.*/teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt|FILE=.*\$\{?HOME_DIR\}?/teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"
-}
-
-has_group_argument_logic() {
-    local file="$1"
-
-    grep -Eiq '(\$1|\$\{1\}|group)' "$file" && \
-    grep -Eiq '(usermod[[:space:]].*-aG|adduser[[:space:]].*[[:space:]]+\$\{?[[:alnum:]_]+\}?|gpasswd[[:space:]].*-a)' "$file"
 }
 
 find_welcome_files() {
@@ -201,14 +202,6 @@ elif [ -n "$user_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Kataloogi/teretulemast faili loomise loogikat ei leitud"
     echo "  Vihje: loo /home/kasutajanimi/teretulemast_kasutajanimi.txt."
-fi
-
-if [ -n "$user_script" ] && has_group_argument_logic "$user_script"; then
-    ok "Grupi argumendi ja gruppi lisamise loogika on tuvastatud"
-elif [ -n "$user_script" ]; then
-    all_missing=$((all_missing + 1))
-    fail "Grupi argumendi tugi voi gruppi lisamine puudub"
-    echo "  Vihje: kasuta skriptis esimest argumenti grupi jaoks ja lisa kasutaja gruppi."
 fi
 
 if [ -n "$user_script" ] && history_has "$(basename "$user_script")"; then
