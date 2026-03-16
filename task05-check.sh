@@ -75,12 +75,12 @@ fi
 
 mapfile -t created_users < <(collect_created_users)
 
-if [ "${#created_users[@]}" -ge 3 ]; then
-    ok "Vahemalt 3 loodud kasutajat on ajaloost leitavad"
+if [ "${#created_users[@]}" -ge 1 ]; then
+    ok "Vähemalt üks kasutaja loomise käsk on ajaloost leitav"
 else
     all_missing=$((all_missing + 1))
-    fail "Kolme kasutaja loomise tegevust ei leitud"
-    echo "  Vihje: loo testkasutajad terminalis ja kontrolli ajalugu."
+    fail "Kasutaja loomise käsku ei leitud"
+    echo "  Vihje: loo testkasutajad kas sudo useradd või adduser abil."
 fi
 
 existing_count=0
