@@ -209,9 +209,16 @@ else
     echo "  Vihje: lisa nadalane kirje (nt @weekly voi day-of-week cron)."
 fi
 
-if history_has '(^|[[:space:]])(bash|sh|\.\/).*(\.sh)([[:space:]]|$)' || \
-    history_has '(^|[[:space:]])(tar|zip)([[:space:]]|$)'; then
+pack_script_name=""
+if [ -n "$pack_script" ]; then
+    pack_script_name="$(basename "$pack_script")"
+fi
+
+if [ -n "$pack_script_name" ] && \
+   grep -Fqi "$pack_script_name" "$HISTORY_FILE" 2>/dev/null; then
     ok "Varukoopia skripti testkaivitus on tuvastatud"
+elif [ -z "$pack_script" ]; then
+    info "Varukoopia skripti testkaivituse kontroll jaeti vahele, sest skripti ei leitud"
 else
     all_missing=$((all_missing + 1))
     fail "Varukoopia skripti testkaivitust ei leitud"
