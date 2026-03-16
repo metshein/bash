@@ -97,6 +97,8 @@ echo "Task 09: kontrollin, kas vajalikud tegevused on labi tehtud"
 
 history -a 2>/dev/null || true
 
+resolved_cmd_path="$(command -v yl9_kuva_nimi 2>/dev/null || true)"
+
 if [ -f "$HISTORY_FILE" ]; then
     ok "Bash ajaloo fail on olemas"
 else
@@ -108,6 +110,12 @@ fi
 skriptid_dir=""
 if skriptid_dir=$(find_skriptid_dir); then
     ok "Kaust skriptid on leitud: $skriptid_dir"
+elif [ -n "$resolved_cmd_path" ] && [ -f "$resolved_cmd_path" ]; then
+    skriptid_dir="$(dirname "$resolved_cmd_path")"
+    ok "Skriptide kaust on tuvastatud: $skriptid_dir"
+    if [ "$(basename "$skriptid_dir")" != "skriptid" ]; then
+        info "Kausta nimi pole tapselt skriptid, aga skript on tuvastatud ja kaivitatav"
+    fi
 else
     all_missing=$((all_missing + 1))
     fail "Kausta skriptid ei leitud"
@@ -134,6 +142,9 @@ fi
 script_file=""
 if [ -n "$skriptid_dir" ] && [ -f "$skriptid_dir/yl9_kuva_nimi" ]; then
     script_file="$skriptid_dir/yl9_kuva_nimi"
+    ok "Skriptifail yl9_kuva_nimi on olemas"
+elif [ -n "$resolved_cmd_path" ] && [ -f "$resolved_cmd_path" ]; then
+    script_file="$resolved_cmd_path"
     ok "Skriptifail yl9_kuva_nimi on olemas"
 else
     all_missing=$((all_missing + 1))
