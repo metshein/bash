@@ -117,7 +117,7 @@ elif [ -n "$important_file" ]; then
     echo "  Vihje: faili sisu peab tulema who valjundist."
 fi
 
-if history_has '(^|[[:space:]])who([[:space:]]|>|$)'; then
+if grep -qE '^who' "$HISTORY_FILE" 2>/dev/null; then
     ok "who kask on leitud"
 else
     all_missing=$((all_missing + 1))
@@ -125,7 +125,7 @@ else
     echo "  Vihje: suuna who valjund faili oluline_fail.txt."
 fi
 
-if history_has '(^|[[:space:]])ls([[:space:]]|$)'; then
+if grep -qE '^ls([[:space:]]|$|-[a-zA-Z])' "$HISTORY_FILE" 2>/dev/null; then
     ok "ls kask on leitud"
 else
     all_missing=$((all_missing + 1))
