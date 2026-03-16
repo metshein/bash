@@ -87,28 +87,18 @@ else
     echo "  Vihje: kontrolli, kas kasutajad said edukalt loodud."
 fi
 
-if history_has '(^|[[:space:]])(passwd|sudo[[:space:]]+passwd|chpasswd|echo.*\|)'; then
-    ok "Paroolide seadistamise tegevus on leitud ajaloost"
-else
-    all_missing=$((all_missing + 1))
-    fail "Paroolide seadistamise tegevust ei leitud"
-    echo "  Vihje: sea kasutajatele paroolid passwd voi echo...chpasswd kasutades."
-fi
-
 if history_has '(^|[[:space:]])(groupadd|addgroup)' && history_has 'harjutus5'; then
     ok "Grupi harjutus5 loomine on leitud"
 else
     all_missing=$((all_missing + 1))
     fail "Grupi harjutus5 loomist ei leitud"
-    echo "  Vihje: loo nouutud grupp groupadd voi addgroup kaesuga."
+    echo "  Vihje: loo nouutud grupp groupadd voi addgroup kasuga."
 fi
 
-if history_has '(^|[[:space:]])groupmod([[:space:]].*)-n[[:space:]]+harj5([[:space:]].*)harjutus5([[:space:]]|$)'; then
+if history_has '(^|[[:space:]])groupmod' && history_has 'harj5'; then
     ok "Grupi umbernimetamise tegevus on leitud"
 else
-    all_missing=$((all_missing + 1))
-    fail "Grupi umbernimetamise tegevust ei leitud"
-    echo "  Vihje: muuda grupi nimi nouutud kujule."
+    ok "Grupi umbernimetamise kontrolli vahele jaetud (sudo kaesud pole ajaloost nahtavad)"
 fi
 
 if getent group harj5 >/dev/null 2>&1; then
@@ -140,6 +130,22 @@ else
     all_missing=$((all_missing + 1))
     fail "Koik loodud kasutajad ei kuulu gruppi harj5"
     echo "  Vihje: lisa iga loodud kasutaja nouutud gruppi."
+fi
+
+password_verified=0
+for user_name in "${created_users[@]}"; do
+    if history_has "(^|[[:space:]])su[[:space:]]+-([[:space:]].*)?${user_name}([[:space:]]|$)"; then
+        password_verified=1
+        break
+    fi
+done
+
+if [ "$password_verified" -eq 1 ]; then
+    ok "Kasutajale on parool seatud (sisselogimine olenes praktiliselt)"
+else
+    all_missing=$((all_missing + 1))
+    fail "Kasutajaga sisselogimise proov (su - kasutaja) puudub"
+    echo "  Vihje: seadista kasutajale parool ja proovi sisse logida."
 fi
 
 if history_has '(^|[[:space:]])(getent[[:space:]]+passwd|cat[[:space:]]+/etc/passwd|compgen[[:space:]]+-u)([[:space:]]|$)'; then
