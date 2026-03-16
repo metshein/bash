@@ -113,15 +113,14 @@ has_welcome_file_logic() {
     local file="$1"
 
     # Variant 1: koik teeosad on samal real.
-    if grep -Eiq '/home/\$\{?[[:alnum:]_]+\}?/kataloog/teretulemast_' "$file" || \
-       grep -Eiq 'kataloog.*/teretulemast_.*\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"; then
+    if grep -Eiq '/home/\$\{?[[:alnum:]_]+\}?/teretulemast_' "$file" || \
+       grep -Eiq 'teretulemast_.*\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"; then
         return 0
     fi
 
-    # Variant 2: tee pannakse kokku muutujate kaudu (HOME_DIR -> DIR -> FILE).
+    # Variant 2: tee pannakse kokku muutujate kaudu (HOME_DIR -> FILE).
     grep -Eiq 'HOME_DIR=.*/home/\$\{?[[:alnum:]_]+\}?' "$file" && \
-    grep -Eiq 'DIR=.*/kataloog' "$file" && \
-    grep -Eiq 'FILE=.*teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"
+    grep -Eiq 'FILE=.*/teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt|FILE=.*\$\{?HOME_DIR\}?/teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"
 }
 
 has_group_argument_logic() {
@@ -201,7 +200,7 @@ if [ -n "$user_script" ] && has_welcome_file_logic "$user_script"; then
 elif [ -n "$user_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Kataloogi/teretulemast faili loomise loogikat ei leitud"
-    echo "  Vihje: loo /home/kasutajanimi/kataloog/teretulemast_kasutajanimi.txt."
+    echo "  Vihje: loo /home/kasutajanimi/teretulemast_kasutajanimi.txt."
 fi
 
 if [ -n "$user_script" ] && has_group_argument_logic "$user_script"; then
