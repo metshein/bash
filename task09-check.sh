@@ -135,7 +135,7 @@ if history_has '(^|[[:space:]])(export[[:space:]]+PATH=|echo[[:space:]].*PATH|na
    history_has 'skriptid'; then
     ok "PATH muutmise tegevus on ajaloost tuvastatud"
 else
-    info "PATH muutmise ajaloo kontroll jaeti pehmemaks"
+    info "PATH muutmise ajaloo kontroll jaeti vahele"
 fi
 
 script_file=""
@@ -203,7 +203,7 @@ if history_has '(^|[[:space:]])(scrot|gnome-screenshot|spectacle|flameshot|impor
    find "$HOME" -maxdepth 3 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | grep -q .; then
     ok "Ekraanitommise toend on osaliselt tuvastatud"
 else
-    info "Ekraanitommise kontroll jaeti pehmemaks (toend voib olla valjaspool masinat)"
+    info "Ekraanitommise kontroll jaeti vahele (toend voib olla valjaspool masinat)"
 fi
 
 echo

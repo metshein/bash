@@ -143,7 +143,7 @@ if history_has '(^|[[:space:]])(scp|sftp|rsync|python[[:space:]]+-m[[:space:]]+h
    history_has 'wlan\.txt'; then
     ok "wlan.txt edasi liigutamise tegevus on osaliselt tuvastatud"
 else
-    ok "wlan.txt Windows allalaadimise kontroll jaeti pehmemaks"
+    ok "wlan.txt Windows allalaadimise kontroll jaeti vahele"
 fi
 
 download_dir=""

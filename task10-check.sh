@@ -214,14 +214,14 @@ fi
 if [ -n "$user_script" ] && history_has "$(basename "$user_script")"; then
     ok "Skripti kaivitamise tegevus on ajaloost tuvastatud"
 else
-    info "Skripti kaivitamise ajaloo kontroll jaeti pehmemaks"
+    info "Skripti kaivitamise ajaloo kontroll jaeti vahele"
 fi
 
 welcome_found="$(find_welcome_files || true)"
 if [ -n "$welcome_found" ]; then
     ok "Teretulemast fail on loodud kasutaja kodukataloogi"
 else
-    info "Teretulemast faili lopptulemuse kontroll jaeti pehmemaks (vajab root oigusi voi testkasutajat)"
+    info "Teretulemast faili lopptulemuse kontroll jaeti vahele (vajab root oigusi voi testkasutajat)"
 fi
 
 echo
