@@ -1,5 +1,6 @@
 
 # Automaatne skriptide kontroll
+[https://metshein.com/skripti_kontroll/](https://metshein.com/skripti_kontroll/)
 ## Samm 1: Logi Linuxisse sisse ja kontrolli Git olemasolu
 
 ```bash
