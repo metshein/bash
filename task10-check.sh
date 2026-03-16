@@ -65,12 +65,17 @@ find_task10_script() {
             continue
         fi
 
+        # Skip binary files and unreadable paths.
+        if ! [ -r "$script" ] || ! grep -Iq . "$script" 2>/dev/null; then
+            continue
+        fi
+
         if grep -Eiq '(useradd|adduser)' "$script" && \
            grep -Eiq '(read[[:space:]].*(kasutaja|user)|kasutaja|username)' "$script"; then
             printf '%s\n' "$script"
             return 0
         fi
-    done < <(find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null)
+    done < <(find "$HOME" -maxdepth 5 -type f \( -name '*.sh' -o -name 'yl10*' -o -name '*kasutaja*' -o -name 'muutujad' -o -perm -u+x \) 2>/dev/null)
 
     return 1
 }
