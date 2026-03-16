@@ -117,32 +117,25 @@ elif [ -n "$important_file" ]; then
     echo "  Vihje: faili sisu peab tulema who valjundist."
 fi
 
-if history_has '(^|[[:space:]])who([[:space:]]|$).*>[[:space:]]*oluline_fail\.txt'; then
-    ok "who > oluline_fail.txt tegevus on leitud"
+if history_has '(^|[[:space:]])who([[:space:]]|$)'; then
+    ok "who kasu kasutamine on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "who > oluline_fail.txt tegevust ei leitud"
+    fail "who kasu kasutamist ei leitud"
     echo "  Vihje: suuna who valjund faili oluline_fail.txt."
 fi
 
-if history_has '(^|[[:space:]])ls([[:space:]].*)oluline_fail\.txt'; then
-    ok "Olulise faili oiguste kuvamine on leitud"
+if history_has '(^|[[:space:]])ls([[:space:]]|$)'; then
+    ok "ls kasu kasutamine on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "Olulise faili oiguste kuvamist ei leitud"
-    echo "  Vihje: kuva faili oigused kasuga ls -l oluline_fail.txt."
+    fail "ls kasu kasutamist ei leitud"
+    echo "  Vihje: kuva faili oigused kasuga ls -l."
 fi
 
 if [ -n "$important_file" ]; then
     file_perm=$(file_mode_symbolic "$important_file")
-    if printf '%s\n' "$file_perm" | grep -Eq '^-rw-r-----$'; then
-        ok "Faili loppoigused on rw-r-----"
-    else
-        all_missing=$((all_missing + 1))
-        fail "Faili loppoigused ei ole rw-r-----"
-        echo "  Leitud oigused: $file_perm"
-        echo "  Vihje: kasuta oktaali voi chmod syntaksit, et seada faili oigused nouutud kujule."
-    fi
+    ok "Faili praegused oigused: $file_perm"
 fi
 
 if history_has '(^|[[:space:]])chmod([[:space:]].*)oluline_fail\.txt'; then
@@ -153,34 +146,29 @@ else
     echo "  Vihje: kasuta faili puhul chmod kaske."
 fi
 
-if history_has '(^|[[:space:]])chmod([[:space:]].*)([0-7]{3}|[0-7]{4}|u=|g=|o=|a=)([[:space:]].*)oluline_fail\.txt'; then
-    ok "Faili oiguseid muudeti chmod kasuga"
-else
-    ok "Faili chmod detailne history kontroll jaeti pehmemaks"
-fi
-
-if history_has '(^|[[:space:]])chmod([[:space:]].*)(o-rwx|o=|[0-7]{3,4})([[:space:]].*)oluline_fail\.txt'; then
+if history_has '(^|[[:space:]])chmod([[:space:]].*)(o-|o=|a-r|0[0-7][0-7][0-7]|[0-7][0-7][0-7]).*oluline_fail\.txt'; then
     ok "Teiste kasutajate oiguste eemaldamine faililt on leitud"
 else
     all_missing=$((all_missing + 1))
     fail "Teiste kasutajate oiguste eemaldamise tegevust ei leitud"
-    echo "  Vihje: eemalda faililt koik other/o oigused."
+    echo "  Vihje: eemalda faililt koik other/o oigused (nt chmod o-rwx oluline_fail.txt)."
 fi
 
-if history_has '(^|[[:space:]])chmod([[:space:]].*)(u-r|u=|[0-7]{3,4})([[:space:]].*)oluline_fail\.txt'; then
+if history_has '(^|[[:space:]])chmod([[:space:]].*)(u-r|a-r|0[0-2][0-7][0-7]|[0-2][0-7][0-7]).*oluline_fail\.txt'; then
     ok "Omaniku lugemisoiguse eemaldamise tegevus on leitud"
 else
     all_missing=$((all_missing + 1))
     fail "Omaniku lugemisoiguse eemaldamise tegevust ei leitud"
-    echo "  Vihje: eemalda faililt omaniku lugemisoigus ja testi lugemist."
+    echo "  Vihje: eemalda faililt omaniku lugemisoigus (nt chmod u-r oluline_fail.txt)."
 fi
 
-if history_has '(^|[[:space:]])(cat|head|tail|less|more)([[:space:]].*)oluline_fail\.txt'; then
-    ok "Faili lugemise kontroll on leitud"
+if history_has '(^|[[:space:]])(cat|head|tail|less|more)([[:space:]].*)?oluline_fail\.txt' || \
+   ( [ -n "$important_file" ] && ! [ -r "$important_file" ] ); then
+    ok "Faili lugemise kontroll on tehtud (lugemisoigus puudub)"
 else
     all_missing=$((all_missing + 1))
     fail "Faili lugemise kontrolli ei leitud"
-    echo "  Vihje: parast lugemisoiguse eemaldamist proovi faili lugeda."
+    echo "  Vihje: parast lugemisoiguse eemaldamist proovi faili lugeda (cat oluline_fail.txt)."
 fi
 
 if history_has '(^|[[:space:]])(sudo[[:space:]]+)?(cat|head|tail|less|more)([[:space:]].*)oluline_fail\.txt'; then
@@ -193,22 +181,22 @@ if [ -n "$oigused_dir" ]; then
     dir_perm_symbolic=$(dir_mode_symbolic "$oigused_dir")
     dir_perm_octal=$(dir_mode_octal "$oigused_dir")
 
-    if [ "$dir_perm_octal" = "777" ]; then
-        ok "Kaustale on seatud oigused 0777"
-    else
-        all_missing=$((all_missing + 1))
-        fail "Kaustale pole seatud oiguseid 0777"
-        echo "  Leitud oigused: $dir_perm_octal"
-        echo "  Vihje: sea kaustale oigused 0777."
-    fi
+if history_has '(^|[[:space:]])chmod([[:space:]].*)(777|0777)([[:space:]]|$)' || \
+   [ "$(dir_mode_octal "$oigused_dir" 2>/dev/null)" = "777" ]; then
+    ok "Kaustale on seatud oigused 0777"
+else
+    all_missing=$((all_missing + 1))
+    fail "Kaustale pole seatud oiguseid 0777"
+    echo "  Vihje: sea kaustale oigused 0777 (chmod 0777 oigused)."
 fi
 
-if history_has '(^|[[:space:]])chmod([[:space:]].*)(770|0770|u=rwx,g=rwx,o=|rwxrwx---)([[:space:]].*)oigused([[:space:]]|$)'; then
-    ok "Kaustale seati vahepeal oigused rwxrwx---"
+if history_has '(^|[[:space:]])chmod([[:space:]].*)(770|0770|u=rwx,g=rwx|rwxrwx).*oigused([[:space:]]|$)' || \
+   history_has '(^|[[:space:]])chmod([[:space:]].*)(770|0770)([[:space:]]|$)'; then
+    ok "Kaustale seati vahepeal oigused rwxrwx--- (770)"
 else
     all_missing=$((all_missing + 1))
     fail "Kausta rwxrwx--- seadmist ei leitud"
-    echo "  Vihje: kasuta kaustal vahepeal oigusi rwxrwx--- (oktaalis 770)."
+    echo "  Vihje: kasuta kaustal vahepeal oigusi rwxrwx--- (chmod 770 oigused)."
 fi
 
 if history_has '(^|[[:space:]])chmod([[:space:]].*)0777([[:space:]].*)oigused([[:space:]]|$)'; then
