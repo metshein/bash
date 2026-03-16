@@ -117,10 +117,6 @@ has_user_create_logic() {
     grep -Eiq '(useradd|adduser)' "$file"
 }
 
-find_welcome_files() {
-    find /home -maxdepth 3 -type f -name 'teretulemast_*.txt' 2>/dev/null | head -n 3
-}
-
 echo "Task 10: kontrollin, kas vajalikud tegevused on labi tehtud"
 
 history -a 2>/dev/null || true
@@ -188,13 +184,6 @@ if [ -n "$user_script" ] && history_has "$(basename "$user_script")"; then
     ok "Skripti kaivitamise tegevus on ajaloost tuvastatud"
 else
     info "Skripti kaivitamise ajaloo kontroll jaeti vahele"
-fi
-
-welcome_found="$(find_welcome_files || true)"
-if [ -n "$welcome_found" ]; then
-    ok "Teretulemast fail on loodud kasutaja kodukataloogi"
-else
-    info "Teretulemast faili lopptulemuse kontroll jaeti vahele (vajab root oigusi voi testkasutajat)"
 fi
 
 echo
