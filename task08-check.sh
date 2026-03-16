@@ -38,10 +38,29 @@ history_has() {
     grep -Eq "$pattern" "$HISTORY_FILE"
 }
 
+is_user_script_candidate() {
+    local script_path="$1"
+    local script_name
+
+    script_name="$(basename "$script_path")"
+
+    case "$script_name" in
+        task*-check.sh|common.sh)
+            return 1
+            ;;
+    esac
+
+    return 0
+}
+
 find_pack_script() {
     local script
 
     while IFS= read -r script; do
+        if ! is_user_script_candidate "$script"; then
+            continue
+        fi
+
         if grep -Eiq '(tar|zip)' "$script" && grep -Eiq 'Documents' "$script"; then
             printf '%s\n' "$script"
             return 0
@@ -55,6 +74,10 @@ find_send_script() {
     local script
 
     while IFS= read -r script; do
+        if ! is_user_script_candidate "$script"; then
+            continue
+        fi
+
         if grep -Eiq '(scp|sftp|rsync|lftp|ftp|curl)' "$script"; then
             printf '%s\n' "$script"
             return 0
