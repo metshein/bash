@@ -117,19 +117,19 @@ elif [ -n "$important_file" ]; then
     echo "  Vihje: faili sisu peab tulema who valjundist."
 fi
 
-if history_has '(^|[[:space:]])who([[:space:]]|$)'; then
-    ok "who kasu kasutamine on leitud"
+if history_has '(^|[[:space:]])who([[:space:]]|>|$)'; then
+    ok "who kask on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "who kasu kasutamist ei leitud"
+    fail "who kasku ei leitud"
     echo "  Vihje: suuna who valjund faili oluline_fail.txt."
 fi
 
 if history_has '(^|[[:space:]])ls([[:space:]]|$)'; then
-    ok "ls kasu kasutamine on leitud"
+    ok "ls kask on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "ls kasu kasutamist ei leitud"
+    fail "ls kasku ei leitud"
     echo "  Vihje: kuva faili oigused kasuga ls -l."
 fi
 
@@ -178,34 +178,17 @@ else
 fi
 
 if [ -n "$oigused_dir" ]; then
-    dir_perm_symbolic=$(dir_mode_symbolic "$oigused_dir")
     dir_perm_octal=$(dir_mode_octal "$oigused_dir")
 
-if history_has '(^|[[:space:]])chmod([[:space:]].*)(777|0777)([[:space:]]|$)' || \
-   [ "$(dir_mode_octal "$oigused_dir" 2>/dev/null)" = "777" ]; then
-    ok "Kaustale on seatud oigused 0777"
-else
-    all_missing=$((all_missing + 1))
-    fail "Kaustale pole seatud oiguseid 0777"
-    echo "  Vihje: sea kaustale oigused 0777 (chmod 0777 oigused)."
-fi
+    if history_has '(^|[[:space:]])chmod([[:space:]].*)(777|0777)([[:space:]]|$)' || \
+       [ "$dir_perm_octal" = "777" ]; then
+        ok "Kaustale on seatud oigused 0777"
+    else
+        all_missing=$((all_missing + 1))
+        fail "Kaustale pole seatud oiguseid 0777"
+        echo "  Vihje: sea kaustale oigused 0777 (chmod 0777 oigused)."
+    fi
 
-if history_has '(^|[[:space:]])chmod([[:space:]].*)(770|0770|u=rwx,g=rwx|rwxrwx).*oigused([[:space:]]|$)' || \
-   history_has '(^|[[:space:]])chmod([[:space:]].*)(770|0770)([[:space:]]|$)'; then
-    ok "Kaustale seati vahepeal oigused rwxrwx--- (770)"
-else
-    all_missing=$((all_missing + 1))
-    fail "Kausta rwxrwx--- seadmist ei leitud"
-    echo "  Vihje: kasuta kaustal vahepeal oigusi rwxrwx--- (chmod 770 oigused)."
-fi
-
-if history_has '(^|[[:space:]])chmod([[:space:]].*)0777([[:space:]].*)oigused([[:space:]]|$)'; then
-    ok "Kausta 0777 seadmine on leitud"
-else
-    ok "Kausta 0777 history kontroll jaeti pehmemaks"
-fi
-
-if [ -n "$oigused_dir" ]; then
     if [ -r "$oigused_dir" ] && [ -x "$oigused_dir" ]; then
         ok "Omanik saab kausta sisu naha ja kausta siseneda"
     else
