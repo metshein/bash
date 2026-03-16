@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$(dirname "$0")/common.sh"
+
+HISTORY_FILE="$HOME/.bash_history"
+
+if [ -t 1 ]; then
+    GREEN_BOLD='\033[1;32m'
+    RED_BOLD='\033[1;31m'
+    RESET='\033[0m'
+else
+    GREEN_BOLD=''
+    RED_BOLD=''
+    RESET=''
+fi
+
+mandatory_fails=0
+all_missing=0
+
+ok() {
+    printf '%b\n' "${GREEN_BOLD}[KORRAS]${RESET} $1"
+}
+
+fail() {
+    printf '%b\n' "${RED_BOLD}[PUUDU]${RESET} $1"
+    mandatory_fails=$((mandatory_fails + 1))
+}
+
+history_has() {
+    local pattern="$1"
+
+    if [ ! -f "$HISTORY_FILE" ]; then
+        return 1
+    fi
+
+    grep -Eq "$pattern" "$HISTORY_FILE"
+}
+
+find_pack_script() {
+    find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null | while IFS= read -r script; do
+        if grep -Eiq '(tar|zip)' "$script" && grep -Eiq 'Documents' "$script"; then
+            printf '%s\n' "$script"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_send_script() {
+    find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null | while IFS= read -r script; do
+        if grep -Eiq '(scp|sftp|rsync|lftp|ftp|curl)' "$script"; then
+            printf '%s\n' "$script"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+find_backup_archive() {
+    find "$HOME" -maxdepth 5 -type f \
+        \( -name '*.tar' -o -name '*.tar.gz' -o -name '*.tgz' -o -name '*.zip' \) \
+        2>/dev/null | while IFS= read -r archive; do
+            base_name="$(basename "$archive")"
+            if printf '%s\n' "$base_name" | grep -Eiq 'documents|varukoopia|backup' && \
+               printf '%s\n' "$base_name" | grep -Eq '([12][0-9]{3}[-_][01][0-9][-_][0-3][0-9]|[0-3][0-9][-_][01][0-9][-_][12][0-9]{3}|[12][0-9]{7})'; then
+                printf '%s\n' "$archive"
+                return 0
+            fi
+        done
+
+    return 1
+}
+
+cron_has_daily_2000() {
+    local cron_content="$1"
+
+    printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*0[[:space:]]+20[[:space:]]+\*[[:space:]]+\*[[:space:]]+\*[[:space:]]+'
+}
+
+cron_has_weekly() {
+    local cron_content="$1"
+
+    printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-7]|sun|mon|tue|wed|thu|fri|sat)[[:space:]]+' || \
+    printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*@weekly[[:space:]]+'
+}
+
+echo "Task 08: kontrollin, kas vajalikud tegevused on labi tehtud"
+
+history -a 2>/dev/null || true
+
+if [ -f "$HISTORY_FILE" ]; then
+    ok "Bash ajaloo fail on olemas"
+else
+    all_missing=$((all_missing + 1))
+    fail "Bash ajaloo faili ei leitud"
+    echo "  Vihje: tee terminalis vajalikud tegevused ja salvesta ajalugu."
+fi
+
+pack_script=""
+if pack_script=$(find_pack_script); then
+    ok "Kokkupakkimise skript on leitud: $pack_script"
+else
+    all_missing=$((all_missing + 1))
+    fail "Kokkupakkimise skripti ei leitud"
+    echo "  Vihje: tee eraldi skript, mis pakib Documents kausta kokku."
+fi
+
+send_script=""
+if send_script=$(find_send_script); then
+    ok "Serverisse saatmise skript on leitud: $send_script"
+else
+    all_missing=$((all_missing + 1))
+    fail "Serverisse saatmise skripti ei leitud"
+    echo "  Vihje: tee eraldi skript, mis saadab varukoopia serverisse."
+fi
+
+if [ -n "$send_script" ] && grep -Eiq 'varukoopiad|liivakast' "$send_script"; then
+    ok "Saatmisskriptis on sihtkaust varukoopiad/liivakast tuvastatud"
+elif [ -n "$send_script" ]; then
+    all_missing=$((all_missing + 1))
+    fail "Saatmisskriptist ei leia varukoopiad/liivakast sihtkausta"
+    echo "  Vihje: suuna fail serveris kausta nimega varukoopiad (voi liivakast)."
+fi
+
+if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
+    ok "Saatmisskriptis on andmeedastuse kask tuvastatud"
+elif [ -n "$send_script" ]; then
+    all_missing=$((all_missing + 1))
+    fail "Saatmisskriptis andmeedastuse kaske ei leitud"
+    echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
+fi
+
+backup_archive=""
+if backup_archive=$(find_backup_archive); then
+    ok "Kuupaevaga varukoopia fail on leitud: $(basename "$backup_archive")"
+else
+    all_missing=$((all_missing + 1))
+    fail "Kuupaevaga varukoopiafaili ei leitud"
+    echo "  Vihje: faili nimi peab sisaldama loomise kuupaeva."
+fi
+
+cron_content="$(crontab -l 2>/dev/null || true)"
+if [ -n "$cron_content" ]; then
+    ok "Crontab kirjed on olemas"
+else
+    all_missing=$((all_missing + 1))
+    fail "Crontab kirjeid ei leitud"
+    echo "  Vihje: lisa crontabi nii paevane kui nadalane ajastus."
+fi
+
+if [ -n "$cron_content" ] && cron_has_daily_2000 "$cron_content"; then
+    ok "Paevane ajastus 20:00 on crontabis olemas"
+else
+    all_missing=$((all_missing + 1))
+    fail "Paevast 20:00 ajastust ei leitud"
+    echo "  Vihje: lisa kirje kujul 0 20 * * * ..."
+fi
+
+if [ -n "$cron_content" ] && cron_has_weekly "$cron_content"; then
+    ok "Nadalane ajastus serverisse saatmiseks on olemas"
+else
+    all_missing=$((all_missing + 1))
+    fail "Nadalast serverisse saatmise ajastust ei leitud"
+    echo "  Vihje: lisa nadalane kirje (nt @weekly voi day-of-week cron)."
+fi
+
+if history_has '(^|[[:space:]])(bash|sh|\.\/).*(\.sh)([[:space:]]|$)' || \
+    history_has '(^|[[:space:]])(tar|zip)([[:space:]]|$)'; then
+    ok "Varukoopia skripti testkaivitus on tuvastatud"
+else
+    all_missing=$((all_missing + 1))
+    fail "Varukoopia skripti testkaivitust ei leitud"
+    echo "  Vihje: kaivita varunduse skript käsitsi ja kontrolli, et fail tekib."
+fi
+
+echo
+echo "Puuduvate kohustuslike tingimuste arv: $mandatory_fails"
+
+if [ "$all_missing" -ge 8 ]; then
+    echo
+    echo "Vihje: voimalik, et shelli ajalugu pole veel faili kirjutatud."
+    echo "Jooksuta enne kontrolli: history -a"
+fi
+
+if [ "$mandatory_fails" -eq 0 ]; then
+    printf '%b\n' "${GREEN_BOLD}Task 08: ARVESTATUD${RESET}"
+    send_result 8
+else
+    printf '%b\n' "${RED_BOLD}Task 08: MITTE ARVESTATUD${RESET}"
+    exit 1
+fi
