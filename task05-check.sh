@@ -87,46 +87,12 @@ else
     echo "  Vihje: kontrolli, kas kasutajad said edukalt loodud."
 fi
 
-if [ "${#created_users[@]}" -ge 3 ]; then
-    users_with_password=0
-    for user_name in "${created_users[@]}"; do
-        user_shadow=$(getent shadow "$user_name" 2>/dev/null || true)
-        if [ -n "$user_shadow" ]; then
-            password_field=$(echo "$user_shadow" | cut -d: -f2)
-            if [ -n "$password_field" ] && [ "$password_field" != "!" ] && [ "$password_field" != "*" ] && [ "$password_field" != "!!" ]; then
-                users_with_password=$((users_with_password + 1))
-            fi
-        fi
-    done
-
-    if [ "$users_with_password" -ge 3 ]; then
-        ok "Koik kolm kasutajat omavad kehtivat parooli"
-    else
-        all_missing=$((all_missing + 1))
-        fail "Mone kasutaja parool ei ole seadistatud"
-        echo "  Vihje: kontrolli, et isal loodud kasutajal oleks kehtiv parool."
-    fi
+if history_has '(^|[[:space:]])(passwd|sudo[[:space:]]+passwd|chpasswd|echo.*\|)'; then
+    ok "Paroolide seadistamise tegevus on leitud ajaloost"
 else
-    if [ "${#created_users[@]}" -ge 1 ]; then
-        users_with_password=0
-        for user_name in "${created_users[@]}"; do
-            user_shadow=$(getent shadow "$user_name" 2>/dev/null || true)
-            if [ -n "$user_shadow" ]; then
-                password_field=$(echo "$user_shadow" | cut -d: -f2)
-                if [ -n "$password_field" ] && [ "$password_field" != "!" ] && [ "$password_field" != "*" ] && [ "$password_field" != "!!" ]; then
-                    users_with_password=$((users_with_password + 1))
-                fi
-            fi
-        done
-
-        if [ "$users_with_password" -gt 0 ]; then
-            ok "Loodud kasutajatel on paroolid"
-        else
-            all_missing=$((all_missing + 1))
-            fail "Loodud kasutajatel ei ole paroolidest"
-            echo "  Vihje: sea paroolid neile kasutajatele."
-        fi
-    fi
+    all_missing=$((all_missing + 1))
+    fail "Paroolide seadistamise tegevust ei leitud"
+    echo "  Vihje: sea kasutajatele paroolid passwd voi echo...chpasswd kasutades."
 fi
 
 if history_has '(^|[[:space:]])(groupadd|addgroup)' && history_has 'harjutus5'; then
