@@ -23,6 +23,10 @@ ok() {
     printf '%b\n' "${GREEN_BOLD}[KORRAS]${RESET} $1"
 }
 
+info() {
+    echo "[INFO] $1"
+}
+
 fail() {
     printf '%b\n' "${RED_BOLD}[PUUDU]${RESET} $1"
     mandatory_fails=$((mandatory_fails + 1))
@@ -157,7 +161,7 @@ elif [ -n "$send_script" ]; then
     fail "Saatmisskriptist ei leia varukoopiad/liivakast sihtkausta"
     echo "  Vihje: suuna fail serveris kausta nimega varukoopiad (voi liivakast)."
 else
-    ok "Saatmisskripti sisu kontroll jaeti vahele, sest skripti ei leitud"
+    info "Saatmisskripti sisu kontroll jaeti vahele, sest skripti ei leitud"
 fi
 
 if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
@@ -167,7 +171,7 @@ elif [ -n "$send_script" ]; then
     fail "Saatmisskriptis andmeedastuse kaske ei leitud"
     echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
 else
-    ok "Saatmisskripti andmeedastuse kontroll jaeti vahele, sest skripti ei leitud"
+    info "Saatmisskripti andmeedastuse kontroll jaeti vahele, sest skripti ei leitud"
 fi
 
 backup_archive=""
