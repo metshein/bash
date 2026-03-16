@@ -99,7 +99,8 @@ has_username_var_logic() {
 has_password_hidden_logic() {
     local file="$1"
 
-    grep -Eiq '^[[:space:]]*read.*-[[:alpha:]]*s[[:alpha:]]*([[:space:]]|$)' "$file"
+    grep -Eiq '^[[:space:]]*read[[:space:]].*-[[:alpha:]]*s[[:alpha:]]*' "$file" || \
+    grep -Eiq '^[[:space:]]*read[[:space:]]+-s([[:space:]]|$)|^[[:space:]]*read[[:space:]]+-sp([[:space:]]|$)|^[[:space:]]*read[[:space:]]+-ps([[:space:]]|$)' "$file"
 }
 
 has_user_create_logic() {
