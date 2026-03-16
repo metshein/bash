@@ -166,18 +166,18 @@ else
     info "Serverisse saatmise skripti ei leitud (see pole kohustuslik, kui tegevus on muul viisil toendatud)"
 fi
 
-if [ -n "$send_script" ] && grep -Eiq 'varukoopiad|liivakast' "$send_script"; then
-    ok "Saatmisskriptis on sihtkaust varukoopiad/liivakast tuvastatud"
-elif history_has 'varukoopiad|liivakast'; then
-    ok "Sihtkausta varukoopiad/liivakast kasutus on ajaloost tuvastatud"
+if [ -n "$send_script" ] && grep -Eiq 'varukoopiad' "$send_script"; then
+    ok "Saatmisskriptis on sihtkaust varukoopiad tuvastatud"
+elif history_has 'varukoopiad'; then
+    ok "Sihtkausta varukoopiad kasutus on ajaloost tuvastatud"
 elif [ -n "$send_script" ]; then
     all_missing=$((all_missing + 1))
-    fail "Saatmisskriptist ei leia varukoopiad/liivakast sihtkausta"
-    echo "  Vihje: suuna fail serveris kausta nimega varukoopiad (voi liivakast)."
+    fail "Saatmisskriptist ei leia varukoopiad sihtkausta"
+    echo "  Vihje: suuna fail serveris kausta nimega varukoopiad."
 else
     all_missing=$((all_missing + 1))
-    fail "Serveri sihtkausta varukoopiad/liivakast kasutust ei leitud"
-    echo "  Vihje: kasuta serveris kausta varukoopiad (voi liivakast)."
+    fail "Serveri sihtkausta varukoopiad kasutust ei leitud"
+    echo "  Vihje: kasuta serveris kausta varukoopiad."
 fi
 
 if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
