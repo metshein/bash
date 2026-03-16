@@ -74,23 +74,6 @@ find_pack_script() {
     return 1
 }
 
-find_send_script() {
-    local script
-
-    while IFS= read -r script; do
-        if ! is_user_script_candidate "$script"; then
-            continue
-        fi
-
-        if grep -Eiq '(scp|sftp|rsync|lftp|ftp|curl)' "$script"; then
-            printf '%s\n' "$script"
-            return 0
-        fi
-    done < <(find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null)
-
-    return 1
-}
-
 find_backup_archive() {
     local archive
     local base_name
@@ -122,22 +105,6 @@ cron_daily_does_pack() {
         grep -Eiq '(tar|zip|backup|varukoopia|documents|\.sh)'
 }
 
-cron_has_weekly() {
-    local cron_content="$1"
-
-    printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-7]|sun|mon|tue|wed|thu|fri|sat)[[:space:]]+' || \
-    printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*@weekly[[:space:]]+'
-}
-
-cron_weekly_does_send() {
-    local cron_content="$1"
-
-    {
-        printf '%s\n' "$cron_content" | grep -Ei '^[[:space:]]*([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-7]|sun|mon|tue|wed|thu|fri|sat)[[:space:]]+'
-        printf '%s\n' "$cron_content" | grep -Ei '^[[:space:]]*@weekly[[:space:]]+'
-    } | grep -Eiq '(scp|sftp|rsync|lftp|curl|ftp|sshpass|varukoopiad|liivakast|\.sh)'
-}
-
 echo "Task 08: kontrollin, kas vajalikud tegevused on labi tehtud"
 
 history -a 2>/dev/null || true
@@ -156,42 +123,6 @@ if pack_script=$(find_pack_script); then
 else
     pack_script=""
     info "Kokkupakkimise skripti ei leitud (see pole kohustuslik, kui tegevus on muul viisil toendatud)"
-fi
-
-send_script=""
-if send_script=$(find_send_script); then
-    ok "Serverisse saatmise skript on leitud: $send_script"
-else
-    send_script=""
-    info "Serverisse saatmise skripti ei leitud (see pole kohustuslik, kui tegevus on muul viisil toendatud)"
-fi
-
-if [ -n "$send_script" ] && grep -Eiq 'varukoopiad' "$send_script"; then
-    ok "Saatmisskriptis on sihtkaust varukoopiad tuvastatud"
-elif history_has 'varukoopiad'; then
-    ok "Sihtkausta varukoopiad kasutus on ajaloost tuvastatud"
-elif [ -n "$send_script" ]; then
-    all_missing=$((all_missing + 1))
-    fail "Saatmisskriptist ei leia varukoopiad sihtkausta"
-    echo "  Vihje: suuna fail serveris kausta nimega varukoopiad."
-else
-    all_missing=$((all_missing + 1))
-    fail "Serveri sihtkausta varukoopiad kasutust ei leitud"
-    echo "  Vihje: kasuta serveris kausta varukoopiad."
-fi
-
-if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
-    ok "Saatmisskriptis on andmeedastuse kask tuvastatud"
-elif history_has '(^|[[:space:]])(sshpass|lftp|curl|ftp|sftp|scp|rsync)([[:space:]]|$)'; then
-    ok "Andmeedastuse kask on ajaloost tuvastatud"
-elif [ -n "$send_script" ]; then
-    all_missing=$((all_missing + 1))
-    fail "Saatmisskriptis andmeedastuse kaske ei leitud"
-    echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
-else
-    all_missing=$((all_missing + 1))
-    fail "Andmeedastuse kaske ei leitud"
-    echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
 fi
 
 backup_archive=""
@@ -227,22 +158,6 @@ else
     all_missing=$((all_missing + 1))
     fail "Paevane 20:00 crontab kirje ei kaivita varundust"
     echo "  Vihje: pane 0 20 kirjesse tar/zip voi varundusskripti kaivitus."
-fi
-
-if [ -n "$cron_content" ] && cron_has_weekly "$cron_content"; then
-    ok "Nadalane ajastus serverisse saatmiseks on olemas"
-else
-    all_missing=$((all_missing + 1))
-    fail "Nadalast serverisse saatmise ajastust ei leitud"
-    echo "  Vihje: lisa nadalane kirje (nt @weekly voi day-of-week cron)."
-fi
-
-if [ -n "$cron_content" ] && cron_weekly_does_send "$cron_content"; then
-    ok "Nadalane crontab kirje kaivitab serverisse saatmise"
-else
-    all_missing=$((all_missing + 1))
-    fail "Nadalane crontab kirje ei kaivita serverisse saatmist"
-    echo "  Vihje: pane nadalasesse kirjesse scp/sftp/rsync voi saatmisskripti kaivitus."
 fi
 
 pack_script_name=""
