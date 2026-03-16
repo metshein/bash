@@ -117,7 +117,8 @@ elif [ -n "$important_file" ]; then
     echo "  Vihje: faili sisu peab tulema who valjundist."
 fi
 
-if grep -qE '^who' "$HISTORY_FILE" 2>/dev/null; then
+if grep -qE '^who([[:space:]]|>|$)' "$HISTORY_FILE" 2>/dev/null || \
+   { [ -n "$important_file" ] && [ -s "$important_file" ]; }; then
     ok "who kask on leitud"
 else
     all_missing=$((all_missing + 1))
