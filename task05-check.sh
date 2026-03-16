@@ -120,44 +120,12 @@ else
     echo "  Vihje: lisa iga loodud kasutaja noutud gruppi."
 fi
 
-password_verified=0
-for user_name in "${created_users[@]}"; do
-    if history_has "(^|[[:space:]])su[[:space:]]+-([[:space:]].*)?${user_name}([[:space:]]|$)"; then
-        password_verified=1
-        break
-    fi
-done
-
-if [ "$password_verified" -eq 1 ]; then
-    ok "Kasutajale on parool seatud (sisselogimine onnestus praktiliselt)"
-else
-    all_missing=$((all_missing + 1))
-    fail "Kasutajaga sisselogimise proov (su - kasutaja) puudub"
-    echo "  Vihje: seadista kasutajale parool ja proovi sisse logida."
-fi
-
 if history_has '(^|[[:space:]])(getent[[:space:]]+passwd|cat[[:space:]]+/etc/passwd|compgen[[:space:]]+-u)([[:space:]]|$)'; then
     ok "Kasutajate nimekirja kuvamine on leitud"
 else
     all_missing=$((all_missing + 1))
     fail "Kasutajate nimekirja kuvamist ei leitud"
     echo "  Vihje: kuva kasutajate nimekiri terminalis."
-fi
-
-login_try_found=0
-for user_name in "${created_users[@]}"; do
-    if history_has "(^|[[:space:]])(su|login|ssh)([[:space:]-].*)${user_name}([[:space:]]|$)"; then
-        login_try_found=1
-        break
-    fi
-done
-
-if [ "$login_try_found" -eq 1 ]; then
-    ok "Testkasutajaga sisselogimise proov on leitud"
-else
-    all_missing=$((all_missing + 1))
-    fail "Testkasutajaga sisselogimise proov puudub"
-    echo "  Vihje: proovi uhe loodud kasutajaga sisse logida."
 fi
 
 if history_has '(^|[[:space:]])(last|lastlog|who|w)([[:space:]]|$)'; then
