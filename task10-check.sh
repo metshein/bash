@@ -112,8 +112,16 @@ has_user_create_logic() {
 has_welcome_file_logic() {
     local file="$1"
 
-    grep -Eiq '/home/\$\{?[[:alnum:]_]+\}?/kataloog/teretulemast_' "$file" || \
-    grep -Eiq 'kataloog.*/teretulemast_.*\$\{?[[:alnum:]_]+\}?.*\.txt' "$file"
+    # Variant 1: koik teeosad on samal real.
+    if grep -Eiq '/home/\$\{?[[:alnum:]_]+\}?/kataloog/teretulemast_' "$file" || \
+       grep -Eiq 'kataloog.*/teretulemast_.*\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"; then
+        return 0
+    fi
+
+    # Variant 2: tee pannakse kokku muutujate kaudu (HOME_DIR -> DIR -> FILE).
+    grep -Eiq 'HOME_DIR=.*/home/\$\{?[[:alnum:]_]+\}?' "$file" && \
+    grep -Eiq 'DIR=.*/kataloog' "$file" && \
+    grep -Eiq 'FILE=.*teretulemast_\$\{?[[:alnum:]_]+\}?[^[:space:]]*\.txt' "$file"
 }
 
 has_group_argument_logic() {
