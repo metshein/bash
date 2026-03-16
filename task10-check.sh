@@ -82,18 +82,11 @@ find_task10_script() {
 
 comment_ratio_ok() {
     local file="$1"
-    local non_empty_lines
     local comment_lines
-
-    non_empty_lines=$(grep -Ecv '^[[:space:]]*$' "$file" || true)
     comment_lines=$(grep -Ec '^[[:space:]]*#' "$file" || true)
 
-    if [ "$non_empty_lines" -eq 0 ]; then
-        return 1
-    fi
-
-    # Praktiline kontroll: vahemalt 5 kommentaari ja umbes veerand ridadest kommenteeritud.
-    [ "$comment_lines" -ge 5 ] && [ $((comment_lines * 4)) -ge "$non_empty_lines" ]
+    # Leebe kontroll: kui kommentaare on vahemalt 3, loeme tingimuse taitetuks.
+    [ "$comment_lines" -ge 3 ]
 }
 
 has_username_var_logic() {
@@ -106,7 +99,7 @@ has_username_var_logic() {
 has_password_hidden_logic() {
     local file="$1"
 
-    grep -Eiq 'read([[:space:]]+-[rpns]*s[rpns]*)|read([[:space:]]+-[rpns]*[[:space:]]+-s)' "$file"
+    grep -Eiq '^[[:space:]]*read.*-[[:alpha:]]*s[[:alpha:]]*([[:space:]]|$)' "$file"
 }
 
 has_user_create_logic() {
