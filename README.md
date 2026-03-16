@@ -1,3 +1,66 @@
+
+# Automaatne skriptide kontroll
+## Samm 1: Logi Linuxisse sisse ja kontrolli Git olemasolu
+
+```bash
+git --version
+```
+
+Kui käsku ei leitud, paigalda Git:
+
+```bash
+# Ubuntu / Debian / Raspberry Pi OS
+sudo apt install -y git
+
+# Fedora
+sudo dnf install -y git
+
+# Arch
+sudo pacman -S git
+```
+
+## Samm 2: Lae alla skriptid
+
+```bash
+git clone https://github.com/metshein/bash
+cd bash
+```
+
+## Samm 3: Anna käivitamise õigused
+
+```bash
+chmod +x *.sh
+```
+
+## Samm 4: Käivita esimene test
+Vaheta skriptinumbrit, et testida teisi ülesandeid
+
+```bash
+./task01-check.sh
+```
+
+## Samm 5: Uuenda vajadusel skripte
+
+Kui git pull annab vea lokaalse muudatuse kohta, siis viska lokaalne muudatus ära ja tõmba uus versioon alla:
+
+```bash
+git checkout task01-check.sh
+git pull
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------
 ### Pilet 1
 
 **Loo skript `eksam1.sh`, mis teeb järgmised sammud:**
