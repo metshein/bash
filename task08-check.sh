@@ -115,11 +115,27 @@ cron_has_daily_2000() {
     printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*0[[:space:]]+20[[:space:]]+\*[[:space:]]+\*[[:space:]]+\*[[:space:]]+'
 }
 
+cron_daily_does_pack() {
+    local cron_content="$1"
+
+    printf '%s\n' "$cron_content" | grep -Ei '^[[:space:]]*0[[:space:]]+20[[:space:]]+\*[[:space:]]+\*[[:space:]]+\*[[:space:]]+' | \
+        grep -Eiq '(tar|zip|backup|varukoopia|documents|\.sh)'
+}
+
 cron_has_weekly() {
     local cron_content="$1"
 
     printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-7]|sun|mon|tue|wed|thu|fri|sat)[[:space:]]+' || \
     printf '%s\n' "$cron_content" | grep -Eq '^[[:space:]]*@weekly[[:space:]]+'
+}
+
+cron_weekly_does_send() {
+    local cron_content="$1"
+
+    {
+        printf '%s\n' "$cron_content" | grep -Ei '^[[:space:]]*([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-9*/,-]+)[[:space:]]+([0-7]|sun|mon|tue|wed|thu|fri|sat)[[:space:]]+'
+        printf '%s\n' "$cron_content" | grep -Ei '^[[:space:]]*@weekly[[:space:]]+'
+    } | grep -Eiq '(scp|sftp|rsync|lftp|curl|ftp|sshpass|varukoopiad|liivakast|\.sh)'
 }
 
 echo "Task 08: kontrollin, kas vajalikud tegevused on labi tehtud"
@@ -139,9 +155,7 @@ if pack_script=$(find_pack_script); then
     ok "Kokkupakkimise skript on leitud: $pack_script"
 else
     pack_script=""
-    all_missing=$((all_missing + 1))
-    fail "Kokkupakkimise skripti ei leitud"
-    echo "  Vihje: tee eraldi skript, mis pakib Documents kausta kokku."
+    info "Kokkupakkimise skripti ei leitud (see pole kohustuslik, kui tegevus on muul viisil toendatud)"
 fi
 
 send_script=""
@@ -149,29 +163,35 @@ if send_script=$(find_send_script); then
     ok "Serverisse saatmise skript on leitud: $send_script"
 else
     send_script=""
-    all_missing=$((all_missing + 1))
-    fail "Serverisse saatmise skripti ei leitud"
-    echo "  Vihje: tee eraldi skript, mis saadab varukoopia serverisse."
+    info "Serverisse saatmise skripti ei leitud (see pole kohustuslik, kui tegevus on muul viisil toendatud)"
 fi
 
 if [ -n "$send_script" ] && grep -Eiq 'varukoopiad|liivakast' "$send_script"; then
     ok "Saatmisskriptis on sihtkaust varukoopiad/liivakast tuvastatud"
+elif history_has 'varukoopiad|liivakast'; then
+    ok "Sihtkausta varukoopiad/liivakast kasutus on ajaloost tuvastatud"
 elif [ -n "$send_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Saatmisskriptist ei leia varukoopiad/liivakast sihtkausta"
     echo "  Vihje: suuna fail serveris kausta nimega varukoopiad (voi liivakast)."
 else
-    info "Saatmisskripti sisu kontroll jaeti vahele, sest skripti ei leitud"
+    all_missing=$((all_missing + 1))
+    fail "Serveri sihtkausta varukoopiad/liivakast kasutust ei leitud"
+    echo "  Vihje: kasuta serveris kausta varukoopiad (voi liivakast)."
 fi
 
 if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
     ok "Saatmisskriptis on andmeedastuse kask tuvastatud"
+elif history_has '(^|[[:space:]])(sshpass|lftp|curl|ftp|sftp|scp|rsync)([[:space:]]|$)'; then
+    ok "Andmeedastuse kask on ajaloost tuvastatud"
 elif [ -n "$send_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Saatmisskriptis andmeedastuse kaske ei leitud"
     echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
 else
-    info "Saatmisskripti andmeedastuse kontroll jaeti vahele, sest skripti ei leitud"
+    all_missing=$((all_missing + 1))
+    fail "Andmeedastuse kaske ei leitud"
+    echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
 fi
 
 backup_archive=""
@@ -201,12 +221,28 @@ else
     echo "  Vihje: lisa kirje kujul 0 20 * * * ..."
 fi
 
+if [ -n "$cron_content" ] && cron_daily_does_pack "$cron_content"; then
+    ok "Paevane 20:00 crontab kirje kaivitab varunduse"
+else
+    all_missing=$((all_missing + 1))
+    fail "Paevane 20:00 crontab kirje ei kaivita varundust"
+    echo "  Vihje: pane 0 20 kirjesse tar/zip voi varundusskripti kaivitus."
+fi
+
 if [ -n "$cron_content" ] && cron_has_weekly "$cron_content"; then
     ok "Nadalane ajastus serverisse saatmiseks on olemas"
 else
     all_missing=$((all_missing + 1))
     fail "Nadalast serverisse saatmise ajastust ei leitud"
     echo "  Vihje: lisa nadalane kirje (nt @weekly voi day-of-week cron)."
+fi
+
+if [ -n "$cron_content" ] && cron_weekly_does_send "$cron_content"; then
+    ok "Nadalane crontab kirje kaivitab serverisse saatmise"
+else
+    all_missing=$((all_missing + 1))
+    fail "Nadalane crontab kirje ei kaivita serverisse saatmist"
+    echo "  Vihje: pane nadalasesse kirjesse scp/sftp/rsync voi saatmisskripti kaivitus."
 fi
 
 pack_script_name=""
@@ -217,12 +253,12 @@ fi
 if [ -n "$pack_script_name" ] && \
    grep -Fqi "$pack_script_name" "$HISTORY_FILE" 2>/dev/null; then
     ok "Varukoopia skripti testkaivitus on tuvastatud"
-elif [ -z "$pack_script" ]; then
-    info "Varukoopia skripti testkaivituse kontroll jaeti vahele, sest skripti ei leitud"
+elif history_has '(^|[[:space:]])(tar|zip)([[:space:]]|$)' && [ -n "$backup_archive" ]; then
+    ok "Varukoopia loomise test on tuvastatud (tar/zip + varukoopiafail)"
 else
     all_missing=$((all_missing + 1))
-    fail "Varukoopia skripti testkaivitust ei leitud"
-    echo "  Vihje: kaivita varunduse skript käsitsi ja kontrolli, et fail tekib."
+    fail "Varukoopia loomise testi ei leitud"
+    echo "  Vihje: kaivita varundus (skript voi kask) ja kontrolli, et fail tekib."
 fi
 
 echo
