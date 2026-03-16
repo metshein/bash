@@ -39,38 +39,45 @@ history_has() {
 }
 
 find_pack_script() {
-    find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null | while IFS= read -r script; do
+    local script
+
+    while IFS= read -r script; do
         if grep -Eiq '(tar|zip)' "$script" && grep -Eiq 'Documents' "$script"; then
             printf '%s\n' "$script"
             return 0
         fi
-    done
+    done < <(find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null)
 
     return 1
 }
 
 find_send_script() {
-    find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null | while IFS= read -r script; do
+    local script
+
+    while IFS= read -r script; do
         if grep -Eiq '(scp|sftp|rsync|lftp|ftp|curl)' "$script"; then
             printf '%s\n' "$script"
             return 0
         fi
-    done
+    done < <(find "$HOME" -maxdepth 5 -type f -name '*.sh' 2>/dev/null)
 
     return 1
 }
 
 find_backup_archive() {
-    find "$HOME" -maxdepth 5 -type f \
+    local archive
+    local base_name
+
+    while IFS= read -r archive; do
+        base_name="$(basename "$archive")"
+        if printf '%s\n' "$base_name" | grep -Eiq 'documents|varukoopia|backup' && \
+           printf '%s\n' "$base_name" | grep -Eq '([12][0-9]{3}[-_][01][0-9][-_][0-3][0-9]|[0-3][0-9][-_][01][0-9][-_][12][0-9]{3}|[12][0-9]{7})'; then
+            printf '%s\n' "$archive"
+            return 0
+        fi
+    done < <(find "$HOME" -maxdepth 5 -type f \
         \( -name '*.tar' -o -name '*.tar.gz' -o -name '*.tgz' -o -name '*.zip' \) \
-        2>/dev/null | while IFS= read -r archive; do
-            base_name="$(basename "$archive")"
-            if printf '%s\n' "$base_name" | grep -Eiq 'documents|varukoopia|backup' && \
-               printf '%s\n' "$base_name" | grep -Eq '([12][0-9]{3}[-_][01][0-9][-_][0-3][0-9]|[0-3][0-9][-_][01][0-9][-_][12][0-9]{3}|[12][0-9]{7})'; then
-                printf '%s\n' "$archive"
-                return 0
-            fi
-        done
+        2>/dev/null)
 
     return 1
 }
@@ -104,6 +111,7 @@ pack_script=""
 if pack_script=$(find_pack_script); then
     ok "Kokkupakkimise skript on leitud: $pack_script"
 else
+    pack_script=""
     all_missing=$((all_missing + 1))
     fail "Kokkupakkimise skripti ei leitud"
     echo "  Vihje: tee eraldi skript, mis pakib Documents kausta kokku."
@@ -113,6 +121,7 @@ send_script=""
 if send_script=$(find_send_script); then
     ok "Serverisse saatmise skript on leitud: $send_script"
 else
+    send_script=""
     all_missing=$((all_missing + 1))
     fail "Serverisse saatmise skripti ei leitud"
     echo "  Vihje: tee eraldi skript, mis saadab varukoopia serverisse."
@@ -124,6 +133,8 @@ elif [ -n "$send_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Saatmisskriptist ei leia varukoopiad/liivakast sihtkausta"
     echo "  Vihje: suuna fail serveris kausta nimega varukoopiad (voi liivakast)."
+else
+    ok "Saatmisskripti sisu kontroll jaeti vahele, sest skripti ei leitud"
 fi
 
 if [ -n "$send_script" ] && grep -Eiq '(sshpass|lftp|curl[[:space:]]+-u|ftp|sftp|scp|rsync)' "$send_script"; then
@@ -132,12 +143,15 @@ elif [ -n "$send_script" ]; then
     all_missing=$((all_missing + 1))
     fail "Saatmisskriptis andmeedastuse kaske ei leitud"
     echo "  Vihje: kasuta faili saatmiseks sobivat kaske (scp/sftp/rsync/lftp/curl)."
+else
+    ok "Saatmisskripti andmeedastuse kontroll jaeti vahele, sest skripti ei leitud"
 fi
 
 backup_archive=""
 if backup_archive=$(find_backup_archive); then
     ok "Kuupaevaga varukoopia fail on leitud: $(basename "$backup_archive")"
 else
+    backup_archive=""
     all_missing=$((all_missing + 1))
     fail "Kuupaevaga varukoopiafaili ei leitud"
     echo "  Vihje: faili nimi peab sisaldama loomise kuupaeva."
