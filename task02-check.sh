@@ -15,6 +15,7 @@ else
 fi
 
 mandatory_fails=0
+all_missing=0
 
 ok() {
     echo "[KORRAS] $1"
@@ -46,6 +47,7 @@ history -a 2>/dev/null || true
 if history_has '(^|[[:space:]])(man[[:space:]]+ping|ping[[:space:]]+(-h|--help))([[:space:]]|$)'; then
     ok "Abi/manual kasutus leitud"
 else
+    all_missing=$((all_missing + 1))
     fail "Abi/manual tegevus puudub"
     echo "  Vihje: vaata ping kasu kirjeldust kas man voi help kaudu."
 fi
@@ -53,6 +55,7 @@ fi
 if history_has 'ping([^#\n]*)127\.0\.0\.1'; then
     ok "Loopback aadressi kontroll leitud"
 else
+    all_missing=$((all_missing + 1))
     fail "Loopback aadressi kontroll puudub"
     echo "  Vihje: testi kohalikku aadressi, mitte valisvorku."
 fi
@@ -60,19 +63,33 @@ fi
 if history_has 'ping([^#\n]*)192\.168\.1\.14'; then
     ok "Lokaalvorgu IP kontroll leitud"
 else
+    all_missing=$((all_missing + 1))
     fail "Lokaalvorgu IP kontroll puudub"
     echo "  Vihje: kasuta etteantud privaatvorgu aadressi."
 fi
 
-if history_has 'ping([^#\n]*)metshein\.com([^#\n]*)(-i[[:space:]]*3|--interval[=[:space:]]*3)([^#\n]*)(-c[[:space:]]*3|--count[=[:space:]]*3)([^#\n]*)-a([^#\n]*)(-s[[:space:]]*1024|--size[=[:space:]]*1024)'; then
+domain_line=$(grep -E 'ping([^#]*)((www\.)?metshein\.com)' "$HISTORY_FILE" | tail -1)
+
+if [ -n "$domain_line" ] && \
+   echo "$domain_line" | grep -Eq '(-i[[:space:]]*3|--interval[=[:space:]]*3)' && \
+   echo "$domain_line" | grep -Eq '(-c[[:space:]]*3|--count[=[:space:]]*3)' && \
+   echo "$domain_line" | grep -Eq '(^|[[:space:]])-[a-zA-Z]*a' && \
+   echo "$domain_line" | grep -Eq '(-s[[:space:]]*1024|--size[=[:space:]]*1024)'; then
     ok "Domeeni kontroll koigi nouetud tingimustega leitud"
 else
+    all_missing=$((all_missing + 1))
     fail "Domeeni kontrolli tingimused ei ole koik taidetud"
     echo "  Vihje: tee yks ping-kask, kus on korraga intervall, pakettide arv, helisignaal ja paketi suurus."
 fi
 
 echo
 echo "Puuduvate kohustuslike tingimuste arv: $mandatory_fails"
+
+if [ "$all_missing" -eq 4 ]; then
+    echo
+    echo "Vihje: voimalik, et shelli ajalugu pole veel faili kirjutatud."
+    echo "Jooksuta enne kontrolli: history -a"
+fi
 
 if [ "$mandatory_fails" -eq 0 ]; then
     echo "Task 02: ARVESTATUD"
