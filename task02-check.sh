@@ -68,7 +68,7 @@ else
     echo "  Vihje: kasuta etteantud privaatvorgu aadressi."
 fi
 
-domain_line=$(grep -E 'ping([^#]*)((www\.)?metshein\.com)' "$HISTORY_FILE" | tail -1)
+domain_line=$(grep -E 'ping.*(www\.)?metshein\.com' "$HISTORY_FILE" | tail -1 || true)
 
 if [ -n "$domain_line" ] && \
    echo "$domain_line" | grep -Eq '(-i[[:space:]]*3|--interval[=[:space:]]*3)' && \
