@@ -73,13 +73,14 @@ domain_line=$(grep -E 'ping([^#]*)((www\.)?metshein\.com)' "$HISTORY_FILE" | tai
 if [ -n "$domain_line" ] && \
    echo "$domain_line" | grep -Eq '(-i[[:space:]]*3|--interval[=[:space:]]*3)' && \
    echo "$domain_line" | grep -Eq '(-c[[:space:]]*3|--count[=[:space:]]*3)' && \
-   echo "$domain_line" | grep -Eq '(^|[[:space:]])-[a-zA-Z]*a' && \
+   echo "$domain_line" | grep -Eq '(^|[[:space:]])-a([[:space:]]|$)' && \
    echo "$domain_line" | grep -Eq '(-s[[:space:]]*1024|--size[=[:space:]]*1024)'; then
+
     ok "Domeeni kontroll koigi nouetud tingimustega leitud"
+
 else
     all_missing=$((all_missing + 1))
     fail "Domeeni kontrolli tingimused ei ole koik taidetud"
-    echo "  Vihje: tee yks ping-kask, kus on korraga intervall, pakettide arv, helisignaal ja paketi suurus."
 fi
 
 echo
