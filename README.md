@@ -40,13 +40,13 @@ Vaheta skriptinumbrit, et testida teisi ülesandeid
 ./task01-check.sh
 ```
 
-## Samm 5: Uuenda vajadusel skripte
+## Samm 5: Uuenda vajadusel skripte. Liigu bash kataloogi ja sisesta:
 
 ```bash
 git pull
 ```
 
-Kui saad errori, siis tee enne:
+Kui saad errori, siis liigu bash kataloogi ja sisesta:
 ```bash
 git fetch
 git checkout task01-check.sh
