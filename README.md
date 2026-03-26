@@ -49,8 +49,7 @@ git pull
 Kui saad errori, siis tee enne:
 ```bash
 git fetch
-git reset --hard origin/main
-chmod +x *.sh
+git checkout task01-check.sh
 ```
 
 
