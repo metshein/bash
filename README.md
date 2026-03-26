@@ -42,15 +42,15 @@ Vaheta skriptinumbrit, et testida teisi ülesandeid
 
 ## Samm 5: Uuenda vajadusel skripte
 
-Kui git pull annab vea lokaalse muudatuse kohta, siis viska lokaalne muudatus ära ja tõmba uus versioon alla:
-
 ```bash
 git pull
 ```
 
 Kui saad errori, siis tee enne:
 ```bash
-git checkout task01-check.sh
+git fetch
+git reset --hard origin/main
+chmod +x *.sh
 ```
 
 
