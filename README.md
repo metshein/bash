@@ -50,6 +50,7 @@ Kui saad errori, siis tee enne:
 ```bash
 git fetch
 git checkout task01-check.sh
+chmod +x *.sh
 ```
 
 
