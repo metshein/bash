@@ -47,6 +47,19 @@ history_has() {
     grep -Eq "$pattern" "$HISTORY_FILE"
 }
 
+cron_has_backup_script() {
+    # Lubame nii konkreetse skripti nime kui ka tüüpilised varukoopia mustrid.
+    local pattern='veebiserveri_konf|apache_conf_|php_conf_|ssl_conf_|/etc/apache2|/etc/php|/etc/ssl'
+
+    if command -v crontab >/dev/null 2>&1; then
+        if crontab -l 2>/dev/null | grep -Eiq "$pattern"; then
+            return 0
+        fi
+    fi
+
+    grep -R -Eiq "$pattern" /etc/crontab /etc/cron.d /etc/cron.daily /etc/cron.weekly /etc/cron.hourly 2>/dev/null
+}
+
 pkg_installed() {
     local pkg="$1"
 
@@ -251,11 +264,12 @@ else
 fi
 
 # backup
-if history_has 'tar.*backup|mysqldump'; then
-    ok "Varukoopia tegemine tuvastatud"
+if history_has 'tar.*backup|mysqldump|apache_conf_|php_conf_|ssl_conf_' || cron_has_backup_script; then
+    ok "Varukoopia tegemine tuvastatud (ajaloost voi cronist)"
 else
     all_missing=$((all_missing + 1))
     fail "Varukoopia tegemist ei tuvastatud"
+    echo "  Vihje: lisa cron'i varukoopia skript (nt 0 0 * * * ~/skriptid/veebiserveri_konf)"
 fi
 
 echo
