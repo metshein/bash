@@ -68,14 +68,12 @@ service_active() {
 }
 
 # Apache turvalisus (vastavalt juhendile)
-apache_security_ok() {
-    local found_sig=1
-    local found_indexes=1
+apache_server_signature_off() {
+    grep -R -Eiq 'ServerSignature[[:space:]]+Off' /etc/apache2 2>/dev/null
+}
 
-    grep -R -Eiq 'ServerSignature[[:space:]]+Off' /etc/apache2 2>/dev/null && found_sig=0
-    grep -R -Eiq 'Options[[:space:]]+-Indexes' /etc/apache2 2>/dev/null && found_indexes=0
-
-    [ $found_sig -eq 0 ] && [ $found_indexes -eq 0 ]
+apache_options_no_indexes() {
+    grep -R -Eiq 'Options[[:space:]]+-Indexes' /etc/apache2 2>/dev/null
 }
 
 apache_has_php_support() {
@@ -88,22 +86,36 @@ apache_has_php_support() {
     fi
 }
 
-# SSL kontrollid
-apache_has_ssl_support() {
-    [ -f /etc/apache2/mods-enabled/ssl.load ] || [ -L /etc/apache2/mods-enabled/ssl.load ]
+# HTTPS kontrollid
+apache_ssl_module_enabled() {
+    if command -v apache2ctl >/dev/null 2>&1; then
+        apache2ctl -M 2>/dev/null | grep -Eiq 'ssl_module'
+    else
+        [ -f /etc/apache2/mods-enabled/ssl.load ] || [ -L /etc/apache2/mods-enabled/ssl.load ]
+    fi
 }
 
-ssl_site_enabled() {
+apache_default_ssl_site_enabled() {
     [ -f /etc/apache2/sites-enabled/default-ssl.conf ] || [ -L /etc/apache2/sites-enabled/default-ssl.conf ]
 }
 
-ssl_cert_present() {
-    find /etc/ssl -maxdepth 4 -type f \( -name '*.crt' -o -name '*.pem' \) 2>/dev/null | grep -q .
+apache_https_config_present() {
+    grep -R -Eiq '<VirtualHost[[:space:]]+\*:443>|Listen[[:space:]]+443|SSLEngine[[:space:]]+on' /etc/apache2 2>/dev/null
 }
 
-ssl_cert_configured() {
-    grep -R -Eiq 'SSLCertificateFile[[:space:]]+/etc/ssl/' /etc/apache2 2>/dev/null && \
-    grep -R -Eiq 'SSLCertificateKeyFile[[:space:]]+/etc/ssl/' /etc/apache2 2>/dev/null
+apache_ssl_cert_directives_present() {
+    grep -R -Eiq 'SSLCertificateFile[[:space:]]+' /etc/apache2 2>/dev/null && \
+    grep -R -Eiq 'SSLCertificateKeyFile[[:space:]]+' /etc/apache2 2>/dev/null
+}
+
+apache_ssl_cert_files_exist() {
+    local cert_file
+    local key_file
+
+    cert_file=$(grep -R -Ei '^[[:space:]]*SSLCertificateFile[[:space:]]+' /etc/apache2 2>/dev/null | head -n1 | sed -E 's/.*SSLCertificateFile[[:space:]]+//I')
+    key_file=$(grep -R -Ei '^[[:space:]]*SSLCertificateKeyFile[[:space:]]+' /etc/apache2 2>/dev/null | head -n1 | sed -E 's/.*SSLCertificateKeyFile[[:space:]]+//I')
+
+    [ -n "$cert_file" ] && [ -n "$key_file" ] && [ -f "$cert_file" ] && [ -f "$key_file" ]
 }
 
 # ------------------------
@@ -139,12 +151,27 @@ else
 fi
 
 # Apache turvalisus
-if apache_security_ok; then
+apache_security_missing=0
+
+if apache_server_signature_off; then
+    ok "ServerSignature Off on seadistatud"
+else
+    apache_security_missing=1
+    fail "ServerSignature Off seadistust ei tuvastatud"
+fi
+
+if apache_options_no_indexes; then
+    ok "Options -Indexes on seadistatud"
+else
+    apache_security_missing=1
+    fail "Options -Indexes seadistust ei tuvastatud"
+fi
+
+if [ "$apache_security_missing" -eq 0 ]; then
     ok "Apache turvalisuse seadistused on korras"
 else
     all_missing=$((all_missing + 1))
-    fail "Apache turvalisuse seadistusi ei tuvastatud"
-    echo "  Vihje: ServerSignature Off ja Options -Indexes"
+    echo "  Vihje: kontrolli Apache conf failides ridu ServerSignature Off ja Options -Indexes"
 fi
 
 # PHP tugi
@@ -179,16 +206,40 @@ else
     fail "phpMyAdmin paigaldust ei tuvastatud"
 fi
 
-# SSL kontroll (parandatud)
-if ssl_cert_present && apache_has_ssl_support && ssl_site_enabled && ssl_cert_configured; then
-    ok "SSL ja HTTPS seadistus on korras"
-elif ssl_cert_present; then
-    all_missing=$((all_missing + 1))
-    fail "SSL failid olemas, aga Apache HTTPS seadistus puudulik"
-    echo "  Vihje: a2enmod ssl, a2ensite default-ssl ja cert path"
+# HTTPS kontroll
+https_missing=0
+
+if apache_ssl_module_enabled; then
+    ok "Apache ssl moodul on aktiivne"
 else
+    https_missing=1
+    fail "Apache ssl moodulit ei tuvastatud"
+fi
+
+if apache_default_ssl_site_enabled; then
+    ok "default-ssl sait on lubatud"
+else
+    https_missing=1
+    fail "default-ssl saiti ei tuvastatud"
+fi
+
+if apache_https_config_present; then
+    ok "Apache HTTPS konfiguratsioon on olemas"
+else
+    https_missing=1
+    fail "Apache HTTPS konfiguratsiooni ei tuvastatud"
+fi
+
+if apache_ssl_cert_directives_present && apache_ssl_cert_files_exist; then
+    ok "Sertifikaadi failid on Apache konfiguratsioonis ja olemas"
+else
+    https_missing=1
+    fail "Sertifikaadi failide seadistus on puudu või failid puuduvad"
+fi
+
+if [ "$https_missing" -ne 0 ]; then
     all_missing=$((all_missing + 1))
-    fail "SSL sertifikaati ei leitud"
+    echo "  Vihje: a2enmod ssl, a2ensite default-ssl ja kontrolli SSLCertificateFile/SSLCertificateKeyFile"
 fi
 
 # monitooring
