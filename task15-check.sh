@@ -55,9 +55,21 @@ cron_has_backup_script() {
         if crontab -l 2>/dev/null | grep -Eiq "$pattern"; then
             return 0
         fi
+
+        # Kui varukoopia on lisatud root crontab'i (sudo crontab -e), proovi seda lugeda.
+        if command -v sudo >/dev/null 2>&1; then
+            if sudo -n crontab -l 2>/dev/null | grep -Eiq "$pattern"; then
+                return 0
+            fi
+        fi
     fi
 
-    grep -R -Eiq "$pattern" /etc/crontab /etc/cron.d /etc/cron.daily /etc/cron.weekly /etc/cron.hourly 2>/dev/null
+    if grep -R -Eiq "$pattern" /etc/crontab /etc/cron.d /etc/cron.daily /etc/cron.weekly /etc/cron.hourly 2>/dev/null; then
+        return 0
+    fi
+
+    # Mõnes süsteemis asuvad kasutajate crontab'id spoolis.
+    grep -R -Eiq "$pattern" /var/spool/cron /var/spool/cron/crontabs 2>/dev/null
 }
 
 pkg_installed() {
