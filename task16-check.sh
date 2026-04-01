@@ -131,6 +131,18 @@ nginx_has_ssl_conf() {
     grep -R -Eiq 'listen[[:space:]]+443([[:space:]]+ssl|;)|ssl_certificate[[:space:]]+|ssl_certificate_key[[:space:]]+' /etc/nginx 2>/dev/null
 }
 
+nginx_has_expected_ssl_paths() {
+    grep -R -Eq '^[[:space:]]*ssl_certificate[[:space:]]+/etc/ssl/server\.crt;[[:space:]]*$' /etc/nginx 2>/dev/null && \
+    grep -R -Eq '^[[:space:]]*ssl_certificate_key[[:space:]]+/etc/ssl/server\.key;[[:space:]]*$' /etc/nginx 2>/dev/null && \
+    [ -f /etc/ssl/server.crt ] && [ -f /etc/ssl/server.key ] && return 0
+
+    grep -R -Eq '^[[:space:]]*ssl_certificate[[:space:]]+/etc/ssl/certs/server\.crt;[[:space:]]*$' /etc/nginx 2>/dev/null && \
+    grep -R -Eq '^[[:space:]]*ssl_certificate_key[[:space:]]+/etc/ssl/private/server\.key;[[:space:]]*$' /etc/nginx 2>/dev/null && \
+    [ -f /etc/ssl/certs/server.crt ] && [ -f /etc/ssl/private/server.key ] && return 0
+
+    return 1
+}
+
 ssl_cert_present() {
     find /etc/ssl -maxdepth 5 -type f \( -name '*.crt' -o -name '*.pem' \) 2>/dev/null | grep -q .
 }
@@ -297,12 +309,12 @@ else
     echo "  Vihje: paigalda phpMyAdmin voi muu GUI lahendus."
 fi
 
-if nginx_has_ssl_conf && ssl_cert_present; then
+if (nginx_has_ssl_conf && ssl_cert_present) || nginx_has_expected_ssl_paths; then
     ok "HTTPS (SSL konfiguratsioon + sertifikaat) on tuvastatud"
 else
     all_missing=$((all_missing + 1))
     fail "HTTPS aktiveerimist ei tuvastatud"
-    echo "  Vihje: lisa nginx SSL seadistus ja sertifikaat."
+    echo "  Vihje: lisa nginx SSL seadistus ja sertifikaat (nt /etc/ssl/server.crt + /etc/ssl/server.key)."
 fi
 
 if localhost_https_ok; then
