@@ -65,14 +65,20 @@ service_active() {
 }
 
 find_web_root() {
-    local candidate
+    if [ -d /sites/demo ]; then
+        printf '%s\n' "/sites/demo"
+        return 0
+    fi
 
-    for candidate in /var/www/html /usr/share/nginx/html; do
-        if [ -d "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            return 0
-        fi
-    done
+    if [ -d sites/demo ]; then
+        printf '%s\n' "sites/demo"
+        return 0
+    fi
+
+    if [ -d ./sites/demo ]; then
+        printf '%s\n' "./sites/demo"
+        return 0
+    fi
 
     return 1
 }
@@ -173,8 +179,8 @@ if web_root=$(find_web_root); then
     ok "Veebi juurkaust on leitud: $web_root"
 else
     all_missing=$((all_missing + 1))
-    fail "Nginx veebikausta ei leitud"
-    echo "  Vihje: kontrolli nginx dokumentjuurt."
+    fail "Nginx veebikausta /sites/demo ega sites/demo ei leitud"
+    echo "  Vihje: loo kaust /sites/demo voi sites/demo ja seadista see nginx document root'iks."
 fi
 
 index_html=""
