@@ -65,8 +65,21 @@ service_active() {
 }
 
 find_web_root() {
+    local script_dir
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+
     if [ -d /sites/demo ]; then
         printf '%s\n' "/sites/demo"
+        return 0
+    fi
+
+    if [ -d "$HOME/sites/demo" ]; then
+        printf '%s\n' "$HOME/sites/demo"
+        return 0
+    fi
+
+    if [ -d "$script_dir/../sites/demo" ]; then
+        printf '%s\n' "$script_dir/../sites/demo"
         return 0
     fi
 
