@@ -1,7 +1,9 @@
 
 # Automaatne skriptide kontroll
 [https://metshein.com/skripti_kontroll/](https://metshein.com/skripti_kontroll/)
+
 Kasuta seda repot: [https://mirrors.xtom.ee/](https://mirrors.xtom.ee/)
+
 ## Samm 1: Logi Linuxisse sisse ja kontrolli Git olemasolu
 
 ```bash
