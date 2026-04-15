@@ -65,7 +65,7 @@ find_pack_script() {
             continue
         fi
 
-        if grep -Eiq '(tar|zip)' "$script" && grep -Eiq 'Documents' "$script"; then
+        if grep -Eiq '(tar|zip)' "$script" && grep -Eiq '(backup|varukoopia|archive|arhiveeri|home|documents)' "$script"; then
             printf '%s\n' "$script"
             return 0
         fi

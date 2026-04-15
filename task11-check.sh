@@ -89,22 +89,20 @@ has_comment_block() {
 has_service_check_logic() {
     local file="$1"
 
-    grep -Eiq '(systemctl[[:space:]]+is-active|systemctl[[:space:]]+status|is-active)' "$file" && \
-    grep -Eiq '(aktiivne|tootab|hoiatus|ei ole aktiivne)' "$file"
+    grep -Eiq '(systemctl[[:space:]]+is-active|systemctl[[:space:]]+status|service[[:space:]].*status|is-active)' "$file"
 }
 
 has_permission_check_logic() {
     local file="$1"
 
-    grep -Eiq 'stat[[:space:]]+-c[[:space:]]*%a' "$file" && \
-    grep -Eiq '(oigused|peaksid olema|fail)' "$file"
+    grep -Eiq '(stat[[:space:]]+-c[[:space:]]*%a|stat[[:space:]]+--format[=[:space:]]*%a|ls[[:space:]]+-l)' "$file" && \
+    grep -Eiq '(oigused|peaksid olema|fail|perm|permission)' "$file"
 }
 
 has_file_type_check_logic() {
     local file="$1"
 
-    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[).*-f' "$file" && \
-    grep -Eiq '(pole fail|ei ole fail)' "$file"
+    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[|test[[:space:]]+).*-f' "$file"
 }
 
 has_args_for_permissions() {

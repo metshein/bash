@@ -114,8 +114,8 @@ has_timestamp_logic() {
 has_backup_filename_logic() {
     local file="$1"
 
-    grep -Eiq '(basename|dirname)' "$file" && \
-    grep -Eiq '(backup|fail_).*\$\{?[[:alnum:]_]+\}?|\$\{?[[:alnum:]_]+\}?_\$\{?[[:alnum:]_]+\}?' "$file"
+    grep -Eiq '(basename|dirname|##\*/)' "$file" && \
+    grep -Eiq '(backup|fail_|varu|archive).*\$\{?[[:alnum:]_]+\}?|\$\{?[[:alnum:]_]+\}?_\$\{?[[:alnum:]_]+\}?' "$file"
 }
 
 has_copy_logic() {

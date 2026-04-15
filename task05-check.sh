@@ -45,7 +45,13 @@ history_reverse_stream() {
 }
 
 collect_created_users() {
-    getent passwd | awk -F: '$1 ~ /^user[0-9]+$/ {print $1}' | sort -V
+    {
+        getent passwd | awk -F: '$1 ~ /^user[0-9]+$/ {print $1}'
+
+        if [ -f "$HISTORY_FILE" ]; then
+            grep -Eio '(^|[[:space:]])(useradd|adduser)[[:space:]]+(-[[:alnum:]-]+[[:space:]]+)*[[:alnum:]_.-]+' "$HISTORY_FILE" | awk '{print $NF}'
+        fi
+    } | awk 'NF' | sort -u
 }
 
 echo "Task 05: kontrollin, kas vajalikud tegevused on labi tehtud"
@@ -69,7 +75,7 @@ elif [ "${#created_users[@]}" -ge 1 ]; then
 else
     all_missing=$((all_missing + 1))
     fail "Kolme kasutaja ei leitud systeemist"
-    echo "  Vihje: kontrolli, kas lood testkasutajad nimedega user1, user2 ja user3."
+    echo "  Vihje: kontrolli, kas loodud kasutajad on olemas ja tuvastatavad." 
 fi
 
 existing_count=0

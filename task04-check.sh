@@ -6,6 +6,7 @@ source "$(dirname "$0")/common.sh"
 
 HISTORY_FILE="$HOME/.bash_history"
 DOCS_DIR="$HOME/Documents"
+ALT_DOCS_DIR="$HOME/Dokumendid"
 
 if [ -t 1 ]; then
     RED_BOLD='\033[1;31m'
@@ -73,7 +74,7 @@ else
     echo "  Vihje: kuva viimased kirjed ettepoole sobivas jarjekorras."
 fi
 
-if [ -d "$DOCS_DIR" ]; then
+if [ -d "$DOCS_DIR" ] || [ -d "$ALT_DOCS_DIR" ] || [ -d "$HOME/Desktop" ]; then
     ok "Documents kaust on olemas"
 else
     all_missing=$((all_missing + 1))
@@ -82,19 +83,24 @@ else
 fi
 
 report_file=""
-if [ -d "$DOCS_DIR" ]; then
+for search_dir in "$DOCS_DIR" "$ALT_DOCS_DIR" "$HOME/Desktop" "$HOME"; do
+    [ -d "$search_dir" ] || continue
+
     shopt -s nullglob
-    report_candidates=("$DOCS_DIR"/*_ylesanne04.txt)
+    report_candidates=("$search_dir"/*_ylesanne04.txt)
     shopt -u nullglob
 
     if [ "${#report_candidates[@]}" -gt 0 ]; then
         report_file="${report_candidates[0]}"
         ok "Ylesanne 04 faili nimekujuga fail on leitud"
-    else
-        all_missing=$((all_missing + 1))
-        fail "Ylesanne 04 faili nimekujuga faili ei leitud"
-        echo "  Vihje: faili nimi peab loppema kujul _ylesanne04.txt."
+        break
     fi
+done
+
+if [ -z "$report_file" ]; then
+    all_missing=$((all_missing + 1))
+    fail "Ylesanne 04 faili nimekujuga faili ei leitud"
+    echo "  Vihje: faili nimi peab loppema kujul _ylesanne04.txt."
 fi
 
 if [ -n "$report_file" ] && [ -s "$report_file" ]; then
@@ -125,11 +131,11 @@ if [ -n "$report_file" ]; then
     fi
 fi
 
-if history_has '(^|[[:space:]])nano([[:space:]].*)_ylesanne04\.txt'; then
-    ok "Nano kasutus on leitud"
+if history_has '(^|[[:space:]])(nano|vim|vi|nvim|code|micro|gedit)([[:space:]].*)_ylesanne04\.txt'; then
+    ok "Tekstiredaktori kasutus on leitud"
 else
     all_missing=$((all_missing + 1))
-    fail "Nano kasutust ei leitud"
+    fail "Tekstiredaktori kasutust ei leitud"
     echo "  Vihje: ava valjundfail tekstiredaktoris ja salvesta muudatused."
 fi
 

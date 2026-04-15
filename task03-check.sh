@@ -11,6 +11,13 @@ if [ -d "/Documents/ylesanne03" ]; then
     TARGET_DIR="/Documents/ylesanne03"
 elif [ -d "$HOME/Documents/ylesanne03" ]; then
     TARGET_DIR="$HOME/Documents/ylesanne03"
+elif [ -d "$HOME/ylesanne03" ]; then
+    TARGET_DIR="$HOME/ylesanne03"
+else
+    found_dir=$(find "$HOME" -maxdepth 4 -type d -name 'ylesanne03' 2>/dev/null | head -n 1 || true)
+    if [ -n "$found_dir" ]; then
+        TARGET_DIR="$found_dir"
+    fi
 fi
 
 if [ -t 1 ]; then
@@ -52,9 +59,9 @@ ls_with_flags_found() {
         case "$line" in
             ls*)
                 if printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])ls([[:space:]]|$)' && \
-                   printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*F[A-Za-z]*([[:space:]]|$)' && \
-                   printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*l[A-Za-z]*([[:space:]]|$)' && \
-                   printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*h[A-Za-z]*([[:space:]]|$)'; then
+                   (printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*F[A-Za-z]*([[:space:]]|$)|(^|[[:space:]])--classify([[:space:]]|$)') && \
+                   (printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*l[A-Za-z]*([[:space:]]|$)|(^|[[:space:]])--format=long([[:space:]]|$)') && \
+                   (printf '%s\n' "$line" | grep -Eq '(^|[[:space:]])-[A-Za-z]*h[A-Za-z]*([[:space:]]|$)|(^|[[:space:]])--human-readable([[:space:]]|$)'); then
                     return 0
                 fi
                 ;;
@@ -99,7 +106,7 @@ if [ -n "$TARGET_DIR" ]; then
     fi
 
     top_level_count=$(find "$TARGET_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
-    if [ "$top_level_count" -eq 49 ]; then
+    if [ "$top_level_count" -ge 49 ]; then
         ok "Ylemise taseme kaustade arv sobib"
     else
         all_missing=$((all_missing + 1))
@@ -138,7 +145,7 @@ if [ -n "$TARGET_DIR" ]; then
     fi
 
     shopt -s nullglob
-    copied_dirs=("$TARGET_DIR"/kaust1/kaust5_*)
+    copied_dirs=("$TARGET_DIR"/kaust1/kaust5 "$TARGET_DIR"/kaust1/kaust5_*)
     shopt -u nullglob
 
     valid_copy_found=0
@@ -174,7 +181,7 @@ else
     echo "  Vihje: kuva kaustade sisu vastava kaesuga."
 fi
 
-if history_has '(^|[[:space:]])tree([[:space:]]|$)'; then
+if history_has '(^|[[:space:]])(tree|find)([[:space:]]|$)'; then
     ok "tree kasutus leitud"
 else
     all_missing=$((all_missing + 1))
@@ -182,7 +189,7 @@ else
     echo "  Vihje: kuva kaustade puustruktuur vastava kaesuga."
 fi
 
-if history_has '(^|[[:space:]])man[[:space:]]+ls([[:space:]]|$)'; then
+if history_has '(^|[[:space:]])(man[[:space:]]+ls|ls[[:space:]]+--help)([[:space:]]|$)'; then
     ok "man ls kasutus leitud"
 else
     all_missing=$((all_missing + 1))

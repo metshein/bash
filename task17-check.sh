@@ -37,7 +37,8 @@ port_3001_listening() {
 }
 
 kuma_http_works() {
-    curl -sS -I --max-time 5 http://127.0.0.1:3001 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302|401|403)'
+    curl -sS -I --max-time 5 http://127.0.0.1:3001 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302|401|403)' || \
+    curl -sS -I --max-time 5 http://localhost:3001 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302|401|403)'
 }
 
 echo "Task 17: kontrollin, kas Uptime Kuma on olemas ja tootab pordil 3001"

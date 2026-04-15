@@ -148,11 +148,13 @@ ssl_cert_present() {
 }
 
 localhost_http_ok() {
-    curl -sS -I --max-time 5 http://127.0.0.1 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)'
+    curl -sS -I --max-time 5 http://127.0.0.1 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)' || \
+    curl -sS -I --max-time 5 http://localhost 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)'
 }
 
 localhost_https_ok() {
-    curl -k -sS -I --max-time 5 https://127.0.0.1 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)'
+    curl -k -sS -I --max-time 5 https://127.0.0.1 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)' || \
+    curl -k -sS -I --max-time 5 https://localhost 2>/dev/null | grep -Eq 'HTTP/[0-9.]+[[:space:]]+(200|301|302)'
 }
 
 php_fpm_service_active() {

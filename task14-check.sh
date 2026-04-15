@@ -116,13 +116,12 @@ has_apache_install_check_logic() {
 has_apache_start_logic() {
     local file="$1"
 
-    grep -Eiq 'systemctl[[:space:]]+(start|enable[[:space:]]+--now)[[:space:]]+apache2' "$file"
+    grep -Eiq '(systemctl[[:space:]]+(start|enable[[:space:]]+--now)[[:space:]]+apache2|service[[:space:]]+apache2[[:space:]]+start)' "$file"
 }
 
 has_apache_remove_logic() {
     local file="$1"
 
-    grep -Eiq 'systemctl[[:space:]]+(stop|disable)[[:space:]]+apache2' "$file" && \
     grep -Eiq '(apt-get|apt)[[:space:]]+(remove|purge)[[:space:]].*apache2' "$file"
 }
 

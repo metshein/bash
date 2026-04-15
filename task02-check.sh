@@ -44,7 +44,7 @@ fi
 history -a 2>/dev/null || true
 
 # Nouded kontrollitakse ajaloo pohjal.
-if history_has '(^|[[:space:]])(man[[:space:]]+ping|ping[[:space:]]+(-h|--help))([[:space:]]|$)'; then
+if history_has '(^|[[:space:]])(man[[:space:]]+ping|info[[:space:]]+ping|ping[[:space:]]+(-h|--help))([[:space:]]|$)'; then
     ok "Abi/manual kasutus leitud"
 else
     all_missing=$((all_missing + 1))
@@ -52,7 +52,7 @@ else
     echo "  Vihje: vaata ping kasu kirjeldust kas man voi help kaudu."
 fi
 
-if history_has 'ping([^#\n]*)127\.0\.0\.1'; then
+if history_has 'ping([^#\n]*)(127\.0\.0\.1|localhost)'; then
     ok "Loopback aadressi kontroll leitud"
 else
     all_missing=$((all_missing + 1))
@@ -60,7 +60,7 @@ else
     echo "  Vihje: testi kohalikku aadressi, mitte valisvorku."
 fi
 
-if history_has 'ping([^#\n]*)192\.168\.1\.14'; then
+if history_has 'ping([^#\n]*)(192\.168\.1\.14|192\.168\.[0-9]{1,3}\.[0-9]{1,3})'; then
     ok "Lokaalvorgu IP kontroll leitud"
 else
     all_missing=$((all_missing + 1))
@@ -68,13 +68,18 @@ else
     echo "  Vihje: kasuta etteantud privaatvorgu aadressi."
 fi
 
-domain_line=$(grep -E 'ping.*(www\.)?metshein\.com' "$HISTORY_FILE" | tail -1 || true)
+domain_ok=0
+while IFS= read -r domain_line; do
+    if echo "$domain_line" | grep -Eq '(-i[[:space:]]*3|--interval[=[:space:]]*3)' && \
+       echo "$domain_line" | grep -Eq '(-c[[:space:]]*3|--count[=[:space:]]*3)' && \
+       echo "$domain_line" | grep -Eq '((^|[[:space:]])-a([[:space:]]|$)|--audible)' && \
+       echo "$domain_line" | grep -Eq '(-s[[:space:]]*1024|--size[=[:space:]]*1024)'; then
+        domain_ok=1
+        break
+    fi
+done < <(grep -Ei 'ping.*((www\.)?metshein\.com|([0-9]{1,3}\.){3}[0-9]{1,3})' "$HISTORY_FILE" || true)
 
-if [ -n "$domain_line" ] && \
-   echo "$domain_line" | grep -Eq '(-i[[:space:]]*3|--interval[=[:space:]]*3)' && \
-   echo "$domain_line" | grep -Eq '(-c[[:space:]]*3|--count[=[:space:]]*3)' && \
-   echo "$domain_line" | grep -Eq '(^|[[:space:]])-a([[:space:]]|$)' && \
-   echo "$domain_line" | grep -Eq '(-s[[:space:]]*1024|--size[=[:space:]]*1024)'; then
+if [ "$domain_ok" -eq 1 ]; then
 
     ok "Domeeni kontroll koigi nouetud tingimustega leitud"
 

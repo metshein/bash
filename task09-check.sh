@@ -131,7 +131,7 @@ else
     echo "  Vihje: lisa skriptid kaust PATH muutujasse (nt .bashrc kaudu)."
 fi
 
-if history_has '(^|[[:space:]])(export[[:space:]]+PATH=|echo[[:space:]].*PATH|nano[[:space:]].*\.bashrc|vi[[:space:]].*\.bashrc|vim[[:space:]].*\.bashrc)' && \
+if history_has '(^|[[:space:]])(export[[:space:]]+PATH=|echo[[:space:]].*PATH|(nano|vi|vim|nvim|micro|code)[[:space:]].*\.(bashrc|profile|bash_profile|zshrc))' && \
    history_has 'skriptid'; then
     ok "PATH muutmise tegevus on ajaloost tuvastatud"
 else
