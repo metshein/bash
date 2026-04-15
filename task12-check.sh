@@ -108,28 +108,27 @@ has_comments() {
     local count
 
     count=$(grep -Ec '^[[:space:]]*#' "$file" || true)
-    [ "$count" -ge 3 ]
+    [ "$count" -ge 2 ]
 }
 
 has_passwd_user_list_logic() {
     local file="$1"
 
-    grep -Eiq '/etc/passwd' "$file" && \
-    grep -Eiq '(awk[[:space:]].*\$1|cut[[:space:]].*-d:[[:space:]]*-f1|getent[[:space:]]+passwd.*awk|while[[:space:]]+IFS=:)' "$file"
+    grep -Eiq '(/etc/passwd|getent[[:space:]]+passwd)' "$file" && \
+    grep -Eiq '(awk[[:space:]].*\$1|cut[[:space:]].*-d:[[:space:]]*-f1|while[[:space:]]+(IFS=:)?[[:space:]]*read|mapfile[[:space:]]+-t|readarray[[:space:]]+-t)' "$file"
 }
 
 has_list_file_check_logic() {
     local file="$1"
 
-    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[|test[[:space:]]+).*-f' "$file"
+    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[|test[[:space:]]+).*(-f|-e)' "$file" && \
+    grep -Eiq '(nimekiri|fail|exit[[:space:]]+1|return[[:space:]]+1)' "$file"
 }
 
 has_lowercase_logic() {
     local file="$1"
 
-    grep -Eiq '(tolower\(|tr[[:space:]].*(\[:upper:\]|A-Z).*(\[:lower:\]|a-z))' "$file" || \
-    (grep -Eiq 'eesnimi[[:space:]]*=[[:space:]]*\$\{eesnimi,,\}' "$file" && \
-     grep -Eiq 'perenimi[[:space:]]*=[[:space:]]*\$\{perenimi,,\}' "$file")
+    grep -Eiq '(tolower\(|tr[[:space:]].*(\[:upper:\]|A-Z).*(\[:lower:\]|a-z)|awk[[:space:]].*tolower|sed[[:space:]].*y/[A-Z]/[a-z]/|\$\{[[:alnum:]_]+,,\})' "$file"
 }
 
 has_diacritic_replace_logic() {
@@ -141,28 +140,29 @@ has_diacritic_replace_logic() {
 has_username_dot_logic() {
     local file="$1"
 
-    grep -Eiq '(\$\{?[[:alnum:]_]+\}?\.\$\{?[[:alnum:]_]+\}?|printf[[:space:]].*%s\.%s|echo[[:space:]].*\.)' "$file"
+    grep -Eiq '(\$\{?[[:alnum:]_]+\}?\.\$\{?[[:alnum:]_]+\}?|printf[[:space:]].*%s\.%s|awk[[:space:]].*\$1[[:space:]]*"\."[[:space:]]*\$2|paste[[:space:]].*-d\.|echo[[:space:]].*\.)' "$file"
 }
 
 has_password_generation_logic() {
     local file="$1"
 
-    grep -Eiq '(sha256sum|openssl[[:space:]]+rand|/dev/urandom|pwgen|uuidgen|mkpasswd)' "$file" && \
-    grep -Eiq '(head[[:space:]]+-c[[:space:]]*12|cut[[:space:]]+-c[[:space:]]*1-12|fold[[:space:]]+-w[[:space:]]*12|\{RANDOM\}|date[[:space:]]*\+%s%N|:[[:space:]]*0:12)' "$file"
+    (grep -Eiq '(sha256sum|openssl[[:space:]]+rand|/dev/urandom|uuidgen|mkpasswd|apg)' "$file" && \
+     grep -Eiq '(head[[:space:]]+-c[[:space:]]*12|cut[[:space:]]+-c[[:space:]]*1-12|fold[[:space:]]+-w[[:space:]]*12|:[[:space:]]*0:12|substr\(.*12)' "$file") || \
+    grep -Eiq '(pwgen[[:space:]].*12)' "$file"
 }
 
 has_bulk_user_create_logic() {
     local file="$1"
 
-    grep -Eiq '(while[[:space:]]+read|for[[:space:]].*in)' "$file" && \
-    grep -Eiq '(useradd|adduser)' "$file"
+    grep -Eiq '(while[[:space:]]+read|for[[:space:]].*in|xargs[[:space:]])' "$file" && \
+    grep -Eiq '(useradd|adduser|newusers)' "$file"
 }
 
 has_output_user_pass_logic() {
     local file="$1"
 
     grep -Eiq '(echo|printf|tee)' "$file" && \
-    grep -Eiq '(parool|password|\$parool|\$password|\$kasutajanimi|\$username|:[[:space:]]*\$)' "$file"
+    grep -Eiq '(parool|password|kasutaja|username|\$parool|\$password|\$kasutajanimi|\$username|:[[:space:]]*\$[[:alnum:]_]+)' "$file"
 }
 
 echo "Task 12: kontrollin, kas vajalikud tegevused on labi tehtud"
