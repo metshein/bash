@@ -93,6 +93,16 @@ find_web_root() {
         return 0
     fi
 
+    if [ -d /var/www/html ]; then
+        printf '%s\n' "/var/www/html"
+        return 0
+    fi
+
+    if [ -d /usr/share/nginx/html ]; then
+        printf '%s\n' "/usr/share/nginx/html"
+        return 0
+    fi
+
     return 1
 }
 
@@ -103,7 +113,7 @@ find_php_test_file() {
 
 html_has_css_link() {
     local html_file="$1"
-    grep -Eiq '<link[^>]+\.css' "$html_file"
+    grep -Eiq '<link[^>]+\.css' "$html_file" || grep -Eiq '<style[[:space:]>]' "$html_file"
 }
 
 css_file_from_html_exists() {
@@ -113,7 +123,9 @@ css_file_from_html_exists() {
 
     css_rel=$(grep -Eio '<link[^>]+href=["\x27][^"\x27]+\.css["\x27]' "$html_file" | head -n 1 | sed -E 's/.*href=["\x27]([^"\x27]+)["\x27].*/\1/' || true)
     if [ -z "$css_rel" ]; then
-        return 1
+        # Accept embedded CSS as an alternative implementation.
+        grep -Eiq '<style[[:space:]>]' "$html_file"
+        return $?
     fi
 
     if [[ "$css_rel" = /* ]]; then
@@ -287,8 +299,10 @@ else
     echo "  Vihje: loo veebikausta test .php fail."
 fi
 
-if history_has '(phpinfo|\.php|curl[[:space:]].*127\.0\.0\.1.*php|wget[[:space:]].*127\.0\.0\.1.*php)'; then
+if history_has '(phpinfo|\.php|curl[[:space:]].*(127\.0\.0\.1|localhost).*php|wget[[:space:]].*(127\.0\.0\.1|localhost).*php|php[[:space:]]+-S|php-fpm)'; then
     ok "PHP toe testimise tegevus on tuvastatud"
+elif [ -n "$php_test_file" ] && nginx_has_php_fpm_conf; then
+    ok "PHP toe testimise loogika on tuvastatud (PHP fail + nginx PHP-FPM conf)"
 else
     all_missing=$((all_missing + 1))
     fail "PHP toe testimise tegevust ei leitud"

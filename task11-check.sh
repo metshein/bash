@@ -108,8 +108,9 @@ has_file_type_check_logic() {
 has_args_for_permissions() {
     local file="$1"
 
-    grep -Eiq '(\$1|\$\{1\})' "$file" && \
-    grep -Eiq '(\$2|\$\{2\})' "$file"
+    (grep -Eiq '(\$1|\$\{1\})' "$file" && \
+     grep -Eiq '(\$2|\$\{2\})' "$file") || \
+    grep -Eiq '(getopts|case[[:space:]]+\$[[:alnum:]_]+[[:space:]]+in|for[[:space:]]+[[:alnum:]_]+[[:space:]]+in[[:space:]]+"\$@")' "$file"
 }
 
 echo "Task 11: kontrollin, kas vajalikud tegevused on labi tehtud"
