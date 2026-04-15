@@ -1,6 +1,7 @@
-
 # Automaatne skriptide kontroll
-[https://metshein.com/skripti_kontroll/](https://metshein.com/skripti_kontroll/)
+
+Tegemist on kursuse [Raspberry Pi](https://metshein.com/courses/raspberry-pi/) automaatkontrolli ja hindamise skriptiga.
+Skriptide tulemused kuvatakse lehel [https://metshein.com/skripti_kontroll/](https://metshein.com/skripti_kontroll/).
 
 Kasuta seda repot: [https://mirrors.xtom.ee/](https://mirrors.xtom.ee/)
 
@@ -37,6 +38,7 @@ chmod +x *.sh
 ```
 
 ## Samm 4: Käivita esimene test
+
 Vaheta skriptinumbrit, et testida teisi ülesandeid
 
 ```bash
@@ -50,19 +52,15 @@ git pull
 ```
 
 Kui saad errori, siis liigu bash kataloogi ja sisesta:
+
 ```bash
 git fetch
 git checkout task01-check.sh
 chmod +x *.sh
 ```
 
+---
 
-
-
-
-
-
--------------------
 ### Pilet 1
 
 **Loo skript `eksam1.sh`, mis teeb järgmised sammud:**
@@ -219,5 +217,5 @@ chmod +x *.sh
 9. Skripti lõpus kuvab: **“Pilet 10 lõpetatud edukalt.”**
 
 ---
-Edu
 
+Edu
