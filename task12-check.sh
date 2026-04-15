@@ -134,7 +134,7 @@ has_lowercase_logic() {
 has_diacritic_replace_logic() {
     local file="$1"
 
-    grep -Eiq '(tr[[:space:]].*[õÕüÜäÄöÖ].*[oOuUaAoO]|sed[[:space:]].*s/[õÕ].*/o/g|sed[[:space:]].*s/[üÜ].*/u/g|sed[[:space:]].*s/[äÄ].*/a/g|sed[[:space:]].*s/[öÖ].*/o/g)' "$file"
+    grep -Eiq '(tr[[:space:]].*[õÕüÜäÄöÖ].*[oOuUaAoO]|sed[[:space:]].*s/[õÕ].*/o/g|sed[[:space:]].*s/[üÜ].*/u/g|sed[[:space:]].*s/[äÄ].*/a/g|sed[[:space:]].*s/[öÖ].*/o/g|sed[[:space:]].*y/õüäöÕÜÄÖ/ouaoOUAO/|sed[[:space:]].*y/ÕÜÄÖõüäö/OUAOouao/)' "$file"
 }
 
 has_username_dot_logic() {
@@ -291,7 +291,7 @@ if [ "$diacritic_ok" -eq 1 ]; then
 else
     all_missing=$((all_missing + 1))
     fail "Tapitahtede asendamist ei leitud"
-    echo "  Vihje: asenda ohuao tapitahed vastavalt noudele."
+    echo "  Vihje: asenda ouao tapitahed vastavalt noudele."
 fi
 
 if [ "$username_ok" -eq 1 ]; then
