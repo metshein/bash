@@ -128,7 +128,9 @@ has_list_file_check_logic() {
 has_lowercase_logic() {
     local file="$1"
 
-    grep -Eiq '(tolower\(|tr[[:space:]].*(\[:upper:\]|A-Z).*(\[:lower:\]|a-z))' "$file"
+    grep -Eiq '(tolower\(|tr[[:space:]].*(\[:upper:\]|A-Z).*(\[:lower:\]|a-z))' "$file" || \
+    (grep -Eiq 'eesnimi[[:space:]]*=[[:space:]]*\$\{eesnimi,,\}' "$file" && \
+     grep -Eiq 'perenimi[[:space:]]*=[[:space:]]*\$\{perenimi,,\}' "$file")
 }
 
 has_diacritic_replace_logic() {
