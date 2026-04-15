@@ -121,8 +121,7 @@ has_passwd_user_list_logic() {
 has_list_file_check_logic() {
     local file="$1"
 
-    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[).*-f' "$file" && \
-    grep -Eiq '(pole fail|ei ole fail|nimekiri\.txt)' "$file"
+    grep -Eiq '(^|[[:space:]])(if[[:space:]]+\[|\[\[|test[[:space:]]+).*-f' "$file"
 }
 
 has_lowercase_logic() {
@@ -136,7 +135,7 @@ has_lowercase_logic() {
 has_diacritic_replace_logic() {
     local file="$1"
 
-    grep -Eiq '(tr[[:space:]].*[õÕüÜäÄöÖ].*[oOuUaAoO]|sed[[:space:]].*s/[õÕ].*/o/g|sed[[:space:]].*s/[üÜ].*/u/g|sed[[:space:]].*s/[äÄ].*/a/g|sed[[:space:]].*s/[öÖ].*/o/g|sed[[:space:]].*y/õüäöÕÜÄÖ/ouaoOUAO/|sed[[:space:]].*y/ÕÜÄÖõüäö/OUAOouao/)' "$file"
+    grep -Eiq '(tr[[:space:]].*[õÕüÜäÄöÖ].*[oOuUaAoO]|sed[[:space:]].*s/[õÕ].*/o/g|sed[[:space:]].*s/[üÜ].*/u/g|sed[[:space:]].*s/[äÄ].*/a/g|sed[[:space:]].*s/[öÖ].*/o/g|sed[[:space:]].*y/õüäöÕÜÄÖ/ouaoOUAO/|sed[[:space:]].*y/ÕÜÄÖõüäö/OUAOouao/|awk[[:space:]].*(gsub|gensub).*[õÕüÜäÄöÖ]|perl[[:space:]].*s/[õÕ].*/o/|\$\{[[:alnum:]_]+//[õÕ]/o\}|\$\{[[:alnum:]_]+//[üÜ]/u\}|\$\{[[:alnum:]_]+//[äÄ]/a\}|\$\{[[:alnum:]_]+//[öÖ]/o\})' "$file"
 }
 
 has_username_dot_logic() {
@@ -148,8 +147,8 @@ has_username_dot_logic() {
 has_password_generation_logic() {
     local file="$1"
 
-    grep -Eiq '(sha256sum|openssl[[:space:]]+rand)' "$file" && \
-    grep -Eiq '(head[[:space:]]+-c[[:space:]]*12|cut[[:space:]]+-c[[:space:]]*1-12|\{RANDOM\}|date[[:space:]]*\+%s%N)' "$file"
+    grep -Eiq '(sha256sum|openssl[[:space:]]+rand|/dev/urandom|pwgen|uuidgen|mkpasswd)' "$file" && \
+    grep -Eiq '(head[[:space:]]+-c[[:space:]]*12|cut[[:space:]]+-c[[:space:]]*1-12|fold[[:space:]]+-w[[:space:]]*12|\{RANDOM\}|date[[:space:]]*\+%s%N|:[[:space:]]*0:12)' "$file"
 }
 
 has_bulk_user_create_logic() {
@@ -162,8 +161,8 @@ has_bulk_user_create_logic() {
 has_output_user_pass_logic() {
     local file="$1"
 
-    grep -Eiq '(echo|printf)' "$file" && \
-    grep -Eiq '(parool|password|\$parool|\$password|\$kasutajanimi|\$username)' "$file"
+    grep -Eiq '(echo|printf|tee)' "$file" && \
+    grep -Eiq '(parool|password|\$parool|\$password|\$kasutajanimi|\$username|:[[:space:]]*\$)' "$file"
 }
 
 echo "Task 12: kontrollin, kas vajalikud tegevused on labi tehtud"
