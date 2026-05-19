@@ -69,7 +69,7 @@ chmod +x *.sh
 2. Loob kausta `/home/kasutajanimi/` ja sinna faili `eksam1.txt`, mille sisuks on `date` ja `who` väljund.
 3. Kontrollib `if`-lausena, kas fail on õigustega `640`. Kui ei ole, parandab õigused ja väljastab hoiatuse.
 4. Otsib sinu kasutaja `.bash_history` failist read, kus on `sudo`, ja salvestab need faili `/home/sinukasutajanimi/sudo_kasud.txt`.
-5. Loob funktsiooni `varunda`, mis teeb sinu kasutajas etteantud failist varukoopia kausta `/home/kasutajanimi/backup/` kuupäeva ja kellaajaga failinimega. Testib funktsiooni `sudo_käsud.txt` peal.
+5. Loob funktsiooni `varunda`, mis teeb sinu kasutajas etteantud failist varukoopia kausta `/home/sinukasutajanimi/backup/` kuupäeva ja kellaajaga failinimega. Testib funktsiooni `sudo_käsud.txt` peal.
 6. Lisab crontab’i kirje, mis varundab iga päev kell 20:05 faili `eksam1.txt`.
 7. Kontrollib, kas teenus `ssh` töötab. Kui ei tööta, väljastab `Hoiatus: ssh ei tööta!`.
 8. Skripti lõpus kuvab: **“Pilet 1 lõpetatud edukalt.”**
