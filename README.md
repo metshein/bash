@@ -85,7 +85,7 @@ chmod +x *.sh
 3. Loob kataloogi `/home/kasutajanimi/andmed` ja 5 faili (`fail1.txt … fail5.txt`), mille sisuks on `hostname` ja `uptime` väljund.
 4. Muudab õigused nii, et: omanik saab lugeda ja kirjutada, grupp ainult lugeda, teised mitte midagi.
 5. Kontrollib `if`-lausena, kas `fail3.txt` on õigustega `640`. Kui pole, parandab õigused ja kirjutab logisse `eksam2.log`.
-6. Loob funktsiooni `varunda`, mis võtab argumendina kausta ja arhiveerib selle `tar.gz` formaati. Varundab `andmed` kataloogi kausta `/home/eksam2/backup/`.
+6. Loob funktsiooni `varunda`, mis võtab argumendina kausta ja arhiveerib selle `tar.gz` formaati. Varundab `andmed` kataloogi kausta `/home/kasutajanimi/backup/`.
 7. Lisab crontab’i kirje, mis varundab `andmed` kataloogi iga päev kell 19:45.
 8. Kontrollib, kas teenus `cron` töötab. Kui töötab, väljastab “cron aktiivne”, muul juhul hoiatuse.
 9. Skripti lõpus kuvab: **“Pilet 2 lõpetatud edukalt.”**
@@ -96,7 +96,7 @@ chmod +x *.sh
 
 **Loo skript `eksam3.sh`, mis teeb järgmised sammud:**
 
-1. Küsib kasutajalt sisendina uue grupi nime. Loob grupi ja kasutaja `eksam3` ning lisab kasutaja loodud gruppi.
+1. Küsib kasutajalt sisendina uue grupi nime. Loob grupi ja kasutaja ning lisab kasutaja loodud gruppi.
 2. Loob kataloogi `/home/kasutajanimi/projekt` ja sinna faili `projekt.txt`, mille sisuks on käsu `ls -l /etc` väljund.
 3. Kontrollib `if`-lausena, kas fail eksisteerib ja on õigustega `600`. Kui õigused ei klapi, parandab need ja väljastab hoiatuse ekraanile.
 4. Loob 3 alamkataloogi (`kaust1 … kaust3`) ja igasse faili `info.txt`, mille sisuks on `ps aux | head -5` väljund.
@@ -128,7 +128,7 @@ chmod +x *.sh
 
 **Loo skript `eksam5.sh`, mis teeb järgmised sammud:**
 
-1. Küsib kasutajalt sisendina grupi nime. Loob grupi ja kasutaja `eksam5`, lisab kasutaja gruppi.
+1. Küsib kasutajalt sisendina grupi nime. Loob grupi ja kasutaja, lisab kasutaja gruppi.
 2. Loob kataloogi `/home/kasutajanimi/projekt` ja 5 faili kujul `fail1.txt … fail5.txt`, mille sisuks on käsu `uptime` väljund.
 3. Kontrollib `if`-lausena, kas `fail5.txt` on õigustega `600`. Kui mitte, parandab õigused ja väljastab teate ekraanile.
 4. Loob alamkaustad `kaust1 … kaust3`, igasse faili `info.txt`, mille sisuks on käsu `id` väljund.
@@ -144,7 +144,7 @@ chmod +x *.sh
 
 **Loo skript `eksam6.sh`, mis teeb järgmised sammud:**
 
-1. Küsib sisendina uue kasutaja nime. Loob kasutaja parooliga `eksam6` ja lisab ta gruppi `eksamigr6`.
+1. Küsib sisendina uue kasutaja nime. Loob kasutaja parooliga ja lisab ta gruppi `eksamigr6`.
 2. Loob kataloogi `/home/kasutajanimi/andmed` ja sinna faili `oluline.log`, mille sisuks on käsu `dmesg | tail -20` väljund.
 3. Kontrollib `if`-lausena, kas fail on olemas. Kui ei ole, kuvab hoiatuse ja lõpetab skripti. Kui on, kontrollib õigused ja vajadusel parandab need (640).
 4. Loob kataloogi `raportid` ja sinna faili `protsessid.txt`, mille sisuks on `ps aux | head -10`.
